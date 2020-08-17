@@ -1,0 +1,699 @@
+<template>
+	<view class="container prohibition">
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="clr_fff">我的订单</view>
+		</view>
+
+		<view class="pd_t123">
+
+			<!-- 顶部导航栏 -->
+			<view class="horizonal-tab">
+				<scroll-view scroll-x="true" scroll-with-animation class="scroll-tab" :style="{ top: top_val + 'rpx'}">
+					<block v-for="(item,index) in tabBars" :key="index">
+						<view class="scroll-tab-item" :class="{'active': tabIndex==index}" @tap="toggleTab(index)">
+							{{item.name}}
+							<view class="scroll-tab-line"></view>
+						</view>
+					</block>
+				</scroll-view>
+			</view>
+
+			<!-- 内容区 -->
+			<view class="">
+				<!-- 滑块视图 -->
+				<view class="content" :style="{ 'margin-top': margin_top + 'rpx'}">
+					<view class="items">
+						<view class="order_img">
+							<image src="https://test134.vrapp.chot.cn/mini/picture/list_none.png" mode="widthFix" v-show="isEmpty == true"></image>
+						</view>
+						<view class="item" v-for="(items,index1) in queryList" :key="index1">
+							<view class="orderid">
+								<text class="title">订单号：{{items.order_no}}</text>
+
+								<image class="sucessImg" src="https://test134.vrapp.chot.cn/mini/picture/135_57.png" mode="widthFix"></image>
+								<text class="statusText">{{items.status}}</text>
+
+							</view>
+
+							<view class="infor uni-flex">
+								<view>
+									<image class="orderPrdImg" mode="widthFix" @error="errImg" :src="items.goods_logo"></image>
+								</view>
+								<view class="infordt">
+									<view class="title">{{items.goods_title}}
+										<text class="num">x{{ items.number_goods }}</text>
+									</view>
+									<view class="price">¥{{ items.price_real }}元/天</view>
+									<view class="date">{{ items.create_at }}</view>
+								</view>
+							</view>
+							<view class="pay" v-show="items.status !== '待付款'">
+								实付款：¥{{items.price_real * items.number_goods}}
+							</view>
+							<view class="pay" v-show="items.status == '待付款'">
+								待付款：¥{{items.price_real * items.number_goods}}
+							</view>
+							<view class="btn">
+								<image @tap="callKehu" class="kehu" src="https://test134.vrapp.chot.cn/mini/picture/kefu.png" mode="widthFix"></image>
+								<button @tap="order_detail(index1)" hover-class="active">查看订单</button>
+								<button hover-class="active" v-show="items.status == '已完成'" @tap="buyAgin(index1)">再次购买</button>
+								<button hover-class="active" v-show="items.status == '待付款'" @tap="pay_order(index1)">立即支付</button>
+								<button v-show="items.status == '已完成' && items.evaluate == null" hover-class="active" @tap="evaluateFn(index1)">立即评价</button>
+								<button v-show="items.status == '已完成' && items.evaluate !== null" hover-class="active" @tap="order_detail(index1)">查看评价</button>
+							</view>
+							<view class="assess" v-show="evaluate == true && newIdx == index1">
+								<view class="assess_item">
+									<view class="uni-flex pd_b20">
+										<view class="uni-rate-title">评分：</view>
+										<uni-rate value="3" @change="changeStarts"></uni-rate>
+									</view>
+									<view class="uni-textarea">
+										<textarea class="border-textarea" placeholder-style="color:#d2d2d2" placeholder="评价内容：" v-model="text_val"></textarea>
+									</view>
+									<view>
+										<view class="confirm">
+											<button class="confirm_btn" @tap="confirmFn">提交评价</button>
+										</view>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+					<uni-load-more :status="status" :content-text="contentText" />
+				</view>
+			</view>
+
+
+		</view>
+
+	</view>
+</template>
+
+<script>
+	import app from "../../App.vue"
+	import uniLoadMore from '../../components/uni-load-more/uni-load-more.vue';
+	export default {
+		components: {
+			uniLoadMore
+		},
+		data() {
+			return {
+				token: '',
+				mid: '',
+				tabIndex: 0,
+				/* 选中标签栏的序列,默认显示第一个 */
+				page: 1,
+				pageSize: 10,
+				status: 'loading',
+				isEmpty: false,
+				contentText: {
+					contentdown: '上拉加载更多',
+					contentrefresh: '加载中.....',
+					contentnomore: '没有更多数据啦'
+				},
+				list_count: 0,
+				tabBars: [{
+						name: '全部',
+						id: 'guanzhu'
+					},
+					{
+						name: '待付款',
+						id: 'tuijian'
+					},
+					{
+						name: '已完成',
+						id: 'tiyu'
+					}
+
+				],
+				demo: {
+					top: 0,
+					height: 0
+				},
+				data: {},
+				queryList: [],
+				newArrayData: [],
+				statusText: '',
+				evaluate: false, // 是否点击评价
+				text_val: '',
+				stars: 3,
+				order_no: null,
+				newIdx: 0,
+				top_val: 0,
+				margin_top: 0
+			}
+		},
+		onLoad() {
+			var status = '';
+			this.getOrderList(status);
+			let mobile_phone = uni.getSystemInfoSync(); // 手机信息
+			if (mobile_phone.windowWidth <= 320) { // iphone5
+				this.top_val = (this.demo.height + this.demo.top) * 2 + 13;
+				this.margin_top = this.demo.height + this.demo.top;
+			} else if (mobile_phone.windowHeight >= 896) { // iphone XR
+				this.top_val = (this.demo.height + this.demo.top) * 2 - 8;
+				this.margin_top = this.demo.height + this.demo.top;
+			} else {
+				this.top_val = (this.demo.height + this.demo.top) * 2;
+				this.margin_top = this.demo.height + this.demo.top;
+			}
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			if (app.globalData.token == undefined || app.globalData.mid == undefined) {
+				this.token = uni.getStorageSync('token');
+				this.mid = uni.getStorageSync('mid');
+			} else {
+				this.token = app.globalData.token;
+				this.mid = app.globalData.mid;
+			}
+		},
+		onShow() {
+			this.tabIndex = 0;
+		},
+		onReachBottom(e) {
+			this.page++;
+			if (this.tabIndex == 0) {
+				var status = '';
+				this.getOrderListMore(status);
+			} else if (this.tabIndex == 1) {
+				var status = 2;
+				this.statusText = "待付款";
+				this.getOrderListMore(status);
+			} else if (this.tabIndex == 2) {
+				var status = 5; // 已完成
+				this.statusText = "已完成";
+				this.getOrderListMore(status);
+			}
+
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			async callKehu(){
+				const res = await this.$myRequset({
+					url: "/api",
+					data: {
+						operate:"index.store_phone",
+						token: this.token
+					}
+				});
+				let phone_number = res.data.data.phone;
+				if(res.data.code ==1){
+					uni.makePhoneCall({
+						phoneNumber: phone_number
+					});
+				}
+			},
+			order_detail(index) {
+				uni.setStorageSync('order_no', this.queryList[index]);
+				uni.navigateTo({
+					url: '../../pages/orderDetail/orderDetail'
+				})
+			},
+			evaluateFn(index) {
+				this.newIdx = index;
+				this.evaluate = !this.evaluate;
+				this.order_no = this.queryList[index].order_no;
+			},
+			changeStarts(num) {
+				this.stars = num.value;
+			},
+			errImg() {
+				this.queryList.forEach((val) => {
+					if (val.goods_logo.length == 29) { // 图片不完整路径
+						val.goods_logo = 'https://test134.vrapp.chot.cn/mini/picture/orderImg.png';
+					}
+					if (val.number_goods == null || val.goods_title == null || val.price_real == null) {
+						val.number_goods = 1;
+						val.price_real = 0;
+						val.goods_title = '居家生活料理套餐'
+					}
+				});
+			},
+			navsHandleClick(i) {
+				this.current = i;
+			},
+			intervalChange(e) {
+				this.current = e.detail.current;
+			},
+			//切换选项卡
+			toggleTab(index) {
+				this.tabIndex = index;
+				this.page = 1;
+				this.isEmpty = false;
+				this.status = 'loading';
+				switch (this.tabIndex) {
+					case 1:
+						var status = 2 // 待付款
+						this.statusText = "待付款";
+						this.getOrderList(status);
+						break;
+					case 2:
+						var status = 5 // 已完成
+						this.statusText = "已完成";
+						this.getOrderList(status);
+						break;
+					default:
+						var status = '' // 默认显示全部列表
+						this.getOrderList(status);
+						break;
+				}
+			},
+			//滑动切换swiper
+			tabChange(e) {
+				this.tabIndex = e.detail.current;
+			},
+			// 再次购买
+			buyAgin(index) {
+				let goods_id = this.queryList[index].goods_id;
+				uni.navigateTo({
+					url: "../../pages/detail/detail?id=" + goods_id
+				})
+			},
+			//获取订单信息
+			async getOrderList(status) {
+				let data = {
+					operate: 'Order.index',
+					token: this.token,
+					page: this.page,
+					status: status
+				}
+				const res = await this.$myRequset({
+					url: '/api',
+					method: "POST",
+					data: data
+				})
+				this.queryList = res.data.data.list.list;
+				this.queryList.forEach((item, index) => {
+					if (item.status == 0) {
+						item.status = "已取消";
+					} else if (item.status == 1) {
+						item.status = "待付款";
+					} else if (item.status == 2) {
+						item.status = "待付款";
+					} else if (item.status == 3) {
+						item.status = "待发货";
+					} else if (item.status == 4) {
+						item.status = "待收货";
+					} else if (item.status == 5) {
+						item.status = "已完成";
+					}
+				});
+				this.list_count = res.data.data.list.count;
+				if (this.list_count !== 0) {
+					this.status = "more";
+					this.isEmpty = false;
+					this.contentText.contentnomore = "没有更多数据啦"
+				} else {
+					this.status = "nomore";
+					this.isEmpty = true;
+					this.contentText.contentnomore = "您暂时没有相关订单哦"
+				}
+
+				let pages = Math.ceil(this.list_count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+				}
+				uni.clearStorageSync();
+			},
+			async getOrderListMore(status) {
+				let data = {
+					operate: 'Order.index',
+					token: this.token,
+					page: this.page,
+					status: status
+				}
+				const res = await this.$myRequset({
+					url: '/api',
+					method: "POST",
+					data: data
+				})
+				for (var i = 0; i < res.data.data.list.list.length; i++) {
+					this.queryList.push(res.data.data.list.list[i]); // 加载的数据追加在上一页后面										
+				}
+				this.queryList.forEach((item, index) => {
+					if (item.status == 0) {
+						item.status = "已取消";
+					} else if (item.status == 1) {
+						item.status = "预约成功";
+					} else if (item.status == 2) {
+						item.status = "待付款";
+					} else if (item.status == 3) {
+						item.status = "待发货";
+					} else if (item.status == 5) {
+						item.status = "已完成";
+					}
+				});
+				let pages = Math.ceil(res.data.data.list.count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+				}
+				uni.clearStorageSync();
+			},
+			async confirmFn() {
+				if (!this.text_val) {
+					uni.showToast({
+						title: "评价内容不能为空!",
+						icon: "none"
+					});
+				} else {
+					const res = await this.$myRequset({
+						url: '/api',
+						method: "POST",
+						data: {
+							operate: 'Order.evaluate_add',
+							order_no: this.order_no,
+							token: this.token,
+							score: this.stars,
+							evaluate: this.text_val
+						},
+						header: {
+							'content-type': 'application/form',
+						}
+					});
+					if (res.data.code === 1) {
+						uni.showToast({
+							title: "评论成功!",
+							icon: "none"
+						});
+						this.evaluate = false;
+						this.text_val = '';
+						this.queryList[this.newIdx].btn_evaluate = "查看评价";
+					};
+				}
+			},
+			// 支付订单
+			async pay_order(index) {
+				let order_no = this.queryList[index].order_no;
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						token: this.token,
+						operate: "member.pay.wx_jsapi",
+						order_no: order_no
+					},
+					header: {
+						'content-type': 'application/form',
+					}
+				});
+				if (res.data.code == 1) {
+					let param = res.data.data;
+					uni.requestPayment({
+						provider: 'wxpay',
+						timeStamp: param.timeStamp,
+						nonceStr: param.nonceStr,
+						package: param.package,
+						signType: param.signType,
+						paySign: param.paySign,
+						success: function(res) {
+							console.log('success:' + JSON.stringify(res));
+							uni.showToast({
+								title: "支付成功",
+								icon: "loading"
+							});
+							uni.redirectTo({
+								url: "../order/order"
+							});
+						},
+						fail: function(err) {
+							console.log('fail:' + JSON.stringify(err));
+							uni.showToast({
+								title: "取消支付",
+								icon: "loading"
+							});
+						}
+					});
+				}
+			}
+		}
+
+	}
+</script>
+<style>
+	page {
+		background-color: #fff;
+	}
+</style>
+<style scoped lang="scss">
+	.content {
+		background: #fefefe;
+		padding: 20rpx 0;
+
+		.item {
+			width: 86%;
+			margin: 26rpx auto;
+			background: #fff;
+			box-shadow: 0rpx 0rpx 6rpx 6rpx #f4f4f4;
+			border-radius: 20rpx;
+			padding: 27rpx;
+		}
+
+		.statusText {
+			position: absolute;
+			top: 0rpx;
+			right: -34rpx;
+			display: inline-block;
+			width: 122rpx;
+			height: 40rpx;
+			z-index: 99;
+			line-height: 40rpx;
+			color: #fff;
+			text-align: center;
+
+
+		}
+
+		.order_img {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			image {
+				width: 150rpx;
+				height: 150rpx;
+				padding: 80rpx 80rpx 20rpx;
+			}
+		}
+
+		.orderid {
+			position: relative;
+			padding-bottom: 27rpx;
+			border-bottom: 1px solid #f4f4f4;
+
+			.title {
+				font-size: 26rpx;
+				color: #28292c;
+			}
+
+			.sucessImg {
+				width: 135rpx;
+				height: 57rpx;
+				position: absolute;
+				top: 0;
+				right: -34rpx;
+			}
+		}
+
+		.infor {
+			padding-top: 25rpx;
+
+			.orderPrdImg {
+				width: 252rpx;
+				height: 146rpx !important;
+			}
+
+			.infordt {
+				padding-left: 27rpx;
+				flex: 2;
+
+				.title {
+					font-size: 24rpx;
+					color: #28292c;
+
+				}
+
+				.price {
+					font-size: 28rpx;
+					color: #fa1c39;
+				}
+
+				.date {
+					font-size: 24rpx;
+					color: #a8a8a8;
+				}
+
+				.num {
+					font-size: 24rpx;
+					color: #a8a8a8;
+					float: right;
+				}
+			}
+		}
+
+		.pay {
+			font-size: 28rpx;
+			color: #28292c;
+			text-align: right;
+			margin-bottom: 20rpx;
+			font-weight: bold;
+			border-bottom: 1px solid #f4f4f4;
+		}
+
+		.btn {
+			padding-top: 20rpx;
+			text-align: right;
+
+			button {
+				display: inline-block;
+				margin-left: 20rpx;
+				background: #fff;
+				color: #5b5a5a;
+				font-size: 24rpx;
+				border: 2px solid #f4f4f4;
+				border-radius: 40rpx;
+
+			}
+
+			button:after {
+				border: none;
+			}
+
+			.active {
+				border-color: #d8d8d8;
+				color: #000;
+			}
+		}
+	}
+
+	.horizonal-tab {
+		background: #fff;
+	}
+
+	.horizonal-tab .active {
+		color: #23c0ba;
+	}
+
+	.scroll-tab {
+		white-space: nowrap;
+		/* 必要，导航栏才能横向*/
+		border-bottom: 1rpx solid #eee;
+		text-align: center;
+		position: fixed;
+		left: 0;
+		top: 150rpx;
+		z-index: 1;
+		background-color: #fff;
+	}
+
+	.scroll-tab-item {
+		display: inline-block;
+		/* 必要，导航栏才能横向*/
+		width: 25%;
+		text-align: center;
+		padding-top: 20rpx;
+	}
+
+	.active .scroll-tab-line {
+		background: #23c0ba;
+		width: 90rpx;
+		height: 5rpx;
+		margin: 0 auto;
+	}
+
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.clr_fff {
+			color: #fff;
+			font-size: 35rpx;
+		}
+	}
+
+	.pd_t123 {
+		padding-top: 123rpx;
+	}
+
+	.kehu {
+		width: 50rpx;
+		height: 50rpx;
+		margin-right: 6rpx;
+		line-height: 50rpx;
+		// margin-bottom: 10rpx;
+	}
+
+	uni-rate {
+		padding-top: 20rpx;
+	}
+
+	.assess {
+		border-top: 20rpx solid #fafafa;
+		background: #fefefe;
+		padding: 20rpx 0;
+
+		.assess_item {
+			padding: 20rpx;
+			margin: 0 auto;
+			border-radius: 20rpx;
+		}
+
+		.border-textarea {
+			border: 1px solid #d2d2d2;
+			border-radius: 10rpx;
+		}
+
+		.uni-rate-title {
+			font-size: 26rpx;
+			color: #4f4f4f;
+		}
+
+		.pd_b20 {
+			padding-bottom: 20rpx;
+		}
+
+		.confirm {
+			padding-top: 20rpx;
+			text-align: right;
+
+			.confirm_btn {
+				background: linear-gradient(to right, #63c8e8, #64d3e6);
+				border: none;
+				color: #fff;
+				font-size: 26rpx;
+				width: 146rpx;
+				height: 47rpx;
+				line-height: 47rpx;
+				padding: 0;
+				display: inline-block;
+
+			}
+		}
+	}
+</style>

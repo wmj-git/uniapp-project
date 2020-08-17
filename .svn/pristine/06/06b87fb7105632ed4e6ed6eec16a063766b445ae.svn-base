@@ -1,0 +1,51 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/order/order",
+    "pages/my/my",
+    "pages/mydetail/mydetail",
+    "pages/news/news",
+    "pages/agree/agree",
+    "pages/useragree/useragree",
+    "pages/worker/worker",
+    "pages/lesao/lesao",
+    "pages/jiahushi/jiahushi",
+    "pages/jiahu/jiahu"
+  ],
+  "subPackages": [],
+  "window": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#63c6e9",
+    "backgroundColor": "#FFFFFF"
+  },
+  "tabBar": {
+    "color": "#a7adb5",
+    "selectedColor": "#30cece",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/images/index.png",
+        "selectedIconPath": "static/images/index_fill.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "iconPath": "static/images/order.png",
+        "selectedIconPath": "static/images/order_fill.png",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "iconPath": "static/images/my.png",
+        "selectedIconPath": "static/images/my_fill.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

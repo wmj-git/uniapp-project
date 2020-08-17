@@ -1,0 +1,858 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="clr_fff">{{goodsdtail.title}}</view>
+		</view>
+		<view class="pd_t123">
+			<image class="img100" mode="widthFix" :src="goodsdtail.logo"></image>
+		</view>
+		<view class="uni-padding-wrap backWhite">
+			<view class="uni-flex" style="justify-content:space-between;">
+				<view class="title">{{goodsdtail.title}}</view>
+				<view>
+					<view><span class="thicon">现特惠</span> <span class="price">￥{{goodsdtail.list[0].price_selling}}/{{goodsdtail.unit}}</span> </view>
+					<view class="originalPrice text-right">￥{{goodsdtail.list[0].price_market}}/{{goodsdtail.unit}}</view>
+				</view>
+			</view>
+
+			<!-- <view class="uni-flex pd-tb20">
+				<view class="">
+					<image class="w103" mode="widthFix"  src="https://test134.vrapp.chot.cn/mini/picture/tuijian.png"></image>
+				</view>
+				<view class="dtdes">
+					此套餐为独居老人在家，经常会忘记吃药甚至多吃药，有时候三餐都是简单无营养的。
+				</view>
+			</view>	 -->
+		</view>
+		<view class="bzview">
+			<view class="uni-padding-wrap">
+				<view class="uni-flex">
+					<view class="flex-item">
+						<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/bz-tuihuan.png"></image>
+					</view>
+					<view class="flex-item">
+						<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/bz-fwu.png"></image>
+					</view>
+					<view class="flex-item">
+						<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/bz-baogao.png"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="dtxq">
+			<view class="uni-padding-wrap">
+				<view class="dtxq-title">-服务场景-</view>
+				<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/dtpic01.png"></image>
+				<view class="dtdes">
+					给老人进行膳食营养的均衡搭配，对吃药进行提醒，这才是晚年对老人身体健康的真正维护。
+				</view>
+				<view>
+					<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/detailjs.jpg"></image>
+				</view>
+			</view>
+		</view>
+		<view class="goodsDtfooter">
+			<view class="uni-flex uni-padding-wrap mrtb30">
+				<view class="w186">
+					<view class="uni-center price" :class="[btnspec ? 'show' : 'hide' ]">￥{{goodsdtail.list[0].price_selling}}</view>
+					<view class="uni-center price" :class="[btnspec ? 'hide' : 'show' ]">￥{{totalPrice.shopPrice * num}}</view>
+					<view class="uni-center originalPrice" :class="[btnspec ? 'show' : 'hide' ]">￥{{goodsdtail.list[0].price_market}}</view>
+					<view class="uni-center originalPrice" :class="[btnspec ? 'hide' : 'show' ]">￥{{totalPrice.marketPrice * num}}</view>
+				</view>
+				<view class="w77">
+					<image @tap="callPhoneTap" class="w55" src="https://test134.vrapp.chot.cn/mini/picture/kehu.png"></image>
+				</view>
+				<view class="uni-flex">
+					<button :class="[btnspec ? 'show' : 'hide' ]" class="subscribe_btn" @tap="subscribe_btn">确认下单</button>
+
+					<button :class="[btnspec ? 'hide' : 'show' ]" class="subscribe_btn" @tap="submit_btn">确认下单</button>
+				</view>
+			</view>
+		</view>
+
+		<view class="zhezhao" v-show="!fold">
+			<view class="odr_module">
+				<view class="cont_t">
+					<view class="uni-flex top_T">
+						<view class="md_title">选择套餐 </view>
+						<view @tap="spec_close">
+							<image class="w28" src="https://test134.vrapp.chot.cn/mini/picture/close.png" mode=""></image>
+						</view>
+					</view>
+					<view class="specs" v-for="(item,index)  in specs" :key="index">
+						<view class="span-tit"><image class="w21" src="https://test134.vrapp.chot.cn/mini/picture/dot-title.png" mode=""></image>{{item.name}}:</view>
+						<view class="spec" v-for="(item1,index1) in item.list" :key="index1" @click="orderChange(index,index1)">
+							<!-- 	{{States[index]}}{{index}} -->
+							<text :class="[States[index]==index1 ? 'activeClass' : 'errorClass']"> {{item1.name}}</text>
+						</view>
+					</view>
+					<view class="span-tit">
+						<image class="w21" src="https://test134.vrapp.chot.cn/mini/picture/dot-title.png" mode=""> 开始时间
+					</view>
+					<view class="date_btn">
+						<button class="" type="button" @click="onShowDatePicker('date')">{{date}}</button>
+						<mx-date-picker :show="showPicker" :type="type" :value="value" :show-tips="true" :begin-text="'入住'" :end-text="'离店'"
+						 :show-seconds="true" @confirm="onSelected" @cancel="onSelected" />
+					</view>
+					<view class="span-tit uni-flex" style="justify-content:space-between;">
+						<view>
+							<image class="w21" src="https://test134.vrapp.chot.cn/mini/picture/dot-title.png" mode=""> 购买数量 <text class="clr23c0ba">(限购12个月)</text>
+						</view>
+						<view class="stepper">
+							<text @tap="bindMinus" :class="[isminNormal ? 'normal' : 'disabled' ]">-</text> <input type="number" @change="bindManual"
+							 v-model="num" /> <text @tap="bindPlus" :class="[ismaxNormal ? 'normal' : 'disabled' ]">+</text>
+						</view>
+
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		
+		<!-- #ifdef MP-WEIXIN -->
+		<view :class="[isCanUse ? 'show' : 'hide' ]">
+			<view class="zhezhao">
+				<view class="center">
+					<view class="toastqx">
+						<icon type="info" size="40" color='item'></icon>
+						<view class='padd'>小程序需要你的微信授权才可以使用</view>
+						<button class='testbutton' open-type="getUserInfo" @getuserinfo="getUserinfo" withCredentials="true">登录</button>
+					</view>					
+				</view>
+			</view>						
+		</view>				
+		<!-- #endif -->	
+		<view class="zhezhao"  :class="[isphoneView ? 'show' : 'hide' ]">
+			<view class="center">
+				<view class="toastqx">
+					<icon type="info" size="40" color='item'></icon>
+					<view class='padd'>小程序需要你的微信手机号授权</view>
+					<button class='testbutton' open-type="getPhoneNumber"@getphonenumber="onGetPhoneNumber" withCredentials="true">手机号授权</button>
+				</view>					
+			</view>
+		</view>	
+		
+
+	</view>
+</template>
+
+<script>
+	import MxDatePicker from "../../components/mx-datepicker/mx-datepicker.vue";
+	import app from "../../App.vue"
+	export default {
+		name: 'deTail',
+		components: {
+			MxDatePicker
+		},		
+		data() {
+			return {
+				token:"",
+				phone:'',
+				nickName:"",
+				avatarUrl:"",
+				from_mid:0,
+				fold: true,
+				isphoneView:false,
+				isCanUse:false,//默认为true
+				
+				btnspec: true,
+				demo: {
+					top: 0,
+					height: 0
+				},
+				goodsdtail: [], //商品详情数据
+				showPicker: false, //时间状态
+				date: new Date().toISOString().slice(0, 10), //时间
+				type: 'rangetime', //时间插件类型
+				value: '', //时间插件
+				num: 1, //下单数量默认是1
+				isminNormal: false,
+				ismaxNormal: true,
+				goodsInfo: {},
+
+				totalPrice: {
+					"marketPrice": 0,
+					"shopPrice": 0
+				},
+
+				orderParam: {},
+				States: {},
+				specs: [],
+				specList: []
+			}
+		},
+		onLoad: function(option) {
+			var goods_id = option.id;
+			this.detail(goods_id, this.token);			
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			uni.setNavigationBarColor({
+				frontColor: '#000000',
+				backgroundColor: '#000000'
+			})
+			if(uni.getStorageSync('from_mid')==''){
+				this.from_mid=0;
+			}else{
+				this.from_mid = uni.getStorageSync('from_mid');
+			}
+			
+		},
+		methods: {
+			// 获取微信用户信息
+			getUserinfo: function(){				
+				 var that=this;
+				 uni.getUserInfo({
+					success: function(res) {
+						var userInfo = res.userInfo
+						that.nickName = userInfo.nickName    //昵称
+						that.avatarUrl = userInfo.avatarUrl //头像
+						var gender = userInfo.gender //性别 0：未知、1：男、2：女
+						var province = userInfo.province
+						var city = userInfo.city
+						var country = userInfo.country														
+						that.isphoneView = true
+						that.isCanUse=false; //记录是否第一次授权  false:表示不是第一次授权
+	                    app.updateUserInfo();
+						
+					},
+					fail:res=>{
+					 uni.showToast({ 
+						 title: '获取微信信息失败', 
+						 duration: 2000 ,
+						 icon:"none"
+						 })						  
+					}
+				 })
+			},
+			login(){
+
+				uni.showLoading({
+					title: '加载中...',
+				});
+				// 1.wx获取登录用户code
+				var _this = this;	
+							
+				app.wxLogin().then(res => {
+					   if(app.globalData.nickName==""){
+							_this.nickName = uni.getStorageSync('nickName');
+					   }else{								
+						   	_this.token = app.globalData.token;						   
+							_this.nickName = app.globalData.nickName;					
+							_this.phone = app.globalData.phone;	
+							_this.avatarUrl = app.globalData.headimg;						
+							if(_this.nickName!==""){
+								_this.isCanUse=false
+								app.updateUserInfo();
+							} else{
+								_this.isCanUse=true
+								app.updateUserInfo();
+							} 					 
+							if(_this.phone==""||_this.phone==null||_this.phone==undefined){
+								_this.isphoneView=true
+								
+							}else{
+								_this.isphoneView= false
+							}
+							                			
+			                  uni.hideLoading();						
+											
+											
+											
+					   }					   
+				});			
+							
+								
+			   
+            },
+				
+			onGetPhoneNumber(e){
+				const session_key = uni.getStorageSync('session_key');
+				if (e.detail.errMsg == 'getPhoneNumber:ok') {
+					this.isphoneView = false;
+				} else {
+			 
+				}
+				
+				let encryptedData = e.detail.encryptedData;
+				let iv=e.detail.iv;
+				
+				uni.request({
+					url:"https://test134.vrapp.chot.cn/api",
+					method:"POST",
+					data:{
+						operate:'Wechat.get_phone',
+						session_key:session_key,
+						encryptedData:encryptedData,
+						iv:iv
+						
+					},
+					success: (res) => {				
+						if(res.data.code==1){
+							let jsonData =res.data.data;
+							let phoneData = JSON.parse(jsonData);												
+							this.phone = phoneData.phoneNumber;	
+							updateUserInfo(phoneData.phoneNumber,this.token);													
+							
+						}else{
+							uni.showToast({
+								title: '手机号授权失败',
+								duration: 1000,
+								icon:"none"
+							});
+							this.isphoneView=false;
+						}
+						
+						
+						
+					}
+				})
+				
+			
+			},	
+			async callPhoneTap(){
+				const res = await this.$myRequset({
+					url:"/api",
+					data:{
+						operate:"index.store_phone",
+						token:this.token
+					}					
+				})
+				uni.makePhoneCall({
+					phoneNumber:res.data.data.phone,
+					success: (res) => {
+						console.log("拨打成功");
+					},fail: (res) => {
+						console.log("拨打失败");
+					}
+				})
+				
+			},
+			orderChange(index, index1) {
+				this.States[index] = index1;
+				//console.log("ss"+this.States[index]);
+				console.log([index, index1]);
+
+				console.log(this.specs[index].list[index1].name);
+
+				this.build_order_data();
+				// this.isCheckState =index
+				// this.isCheckStates=index1
+
+			},
+
+			build_order_data() {
+				let goods_spec = this.build_spec_key();
+				this.orderParam['token'] = this.token;
+				this.orderParam['rule'] = this.goodsInfo.id + '@' + goods_spec + '@' + this.num;
+				this.orderParam['from_mid'] = this.from_mid;
+				this.orderParam['from_token'] = '';
+				console.log(this.orderParam)
+				this.specList.forEach((item, index) => {
+					if (item.goods_spec == goods_spec) {
+						this.totalPrice.marketPrice = item['price_market'];
+						this.totalPrice.shopPrice = item['price_selling'];
+					}
+				});
+
+
+			},
+			submit_btn(e) {
+				let goods_spec = this.build_spec_key();
+				this.orderParam['token'] = this.token;
+				this.orderParam['rule'] = this.goodsInfo.id + '@' + goods_spec + '@' + this.num;
+				this.orderParam['from_mid'] = this.from_mid;
+				this.orderParam['from_token'] = '';
+				this.orderParam['order_type'] = 1;
+				console.log(this.orderParam)
+				var orderParam = this.orderParam;
+				uni.request({
+					url: 'https://test134.vrapp.chot.cn/store/api.member.order/set.html',
+					data: orderParam,
+					method: 'POST',
+					success: (res) => {
+						console.log("订单详情")
+						console.log(res)
+						if (res.data.code == 1) {
+							var order_no = res.data.data.order.order.order_no
+							uni.request({
+								url: "https://test134.vrapp.chot.cn/api/",
+								data: {
+									operate: "member.pay.wx_jsapi",
+									token: this.token,
+									order_no: order_no
+								},
+								method: 'POST',
+								success: (res) => {
+									console.log(res)
+
+									var signType = res.data.data.signType
+									var nonceStr = res.data.data.nonceStr;
+									let _package = res.data.data.package;
+									var paySign = res.data.data.paySign
+									var signType = res.data.data.signType
+									var timeStamp = res.data.data.timeStamp
+
+									uni.requestPayment({
+										provider: 'wxpay',
+										timeStamp: timeStamp,
+										nonceStr: nonceStr,
+										package: _package,
+										signType: signType,
+										paySign: paySign,
+										success: function(res) {
+											console.log('success:' + JSON.stringify(res));
+											uni.showToast({
+												title: "支付成功",
+												icon: "loading"
+											});
+											uni.navigateTo({
+												url: "../../pagesB/order/order"
+											});
+										},
+										fail: function(err) {
+											console.log('fail:' + JSON.stringify(err));
+											uni.showToast({
+												title: "取消支付",
+												icon: "loading"
+											});
+											uni.navigateTo({
+												url: "../../pagesB/order/order"
+											});
+										}
+									});
+
+								}
+							})
+
+
+
+						} else {
+							uni.showToast({
+								title:res.data.info,
+								duration: 3000,
+								icon: "none"
+							});
+
+
+						}
+
+					}
+				})
+
+
+			},
+			build_spec_key() {
+				let str = '';
+				let count = this.specs.length;
+
+				this.specs.forEach((item, index) => {
+					str += item.name + '::' + item.list[this.States[index]]['name'];
+					if (index + 1 != count) {
+						str += ';;';
+					}
+				});
+
+				return str;
+			},
+
+			backleft(e) {
+				uni.navigateBack();
+			},
+			subscribe_btn(e) {				
+				this.login();				
+				this.fold = false;
+				this.btnspec = false;
+				let goods_spec = this.build_spec_key();
+				this.specList.forEach((item, index) => {
+					if (item.goods_spec == goods_spec) {
+						this.totalPrice.marketPrice = item['price_market'];
+						this.totalPrice.shopPrice = item['price_selling'];
+					}
+				});
+
+			},
+			spec_close(e) {
+				this.fold = true;
+				this.btnspec = true
+			},
+			async detail(goods_id, token) {
+				const res = await this.$myRequset({
+					url: "/api",
+					data: {
+						operate: "Goods.get",
+						token: token,
+						goods_id: goods_id
+					}
+				})
+
+				let index = 0;
+				var obj = {}
+				var States = {};
+				for (obj in res.data.data.specs) {
+
+					States[index] = 0;
+
+					index++;
+				}
+
+				this.States = States;
+				console.log(res)
+				this.goodsdtail = res.data.data
+				if(this.goodsdtail.unit==1){
+					this.goodsdtail.unit="天"
+				}else if(this.goodsdtail.unit==2){
+					this.goodsdtail.unit="月"
+				}else if(this.goodsdtail.unit==3){
+					this.goodsdtail.unit="小时"
+				}else if(this.goodsdtail.unit==10){
+					this.goodsdtail.unit="个"
+				}
+				else if(this.goodsdtail.unit==11){
+					this.goodsdtail.unit="千克"
+				}
+				else if(this.goodsdtail.unit==12){
+					this.goodsdtail.unit="套"
+				}
+				this.goodsInfo = res.data.data;
+				this.specs = res.data.data.specs
+				this.specList = res.data.data.list
+
+				console.log(this.States);
+			},
+
+			onShowDatePicker(type) {
+				this.type = type;
+				this.showPicker = true;
+				this.value = this[type];
+
+			},
+			onSelected(e) {
+				this.showPicker = false;
+				if (e) {
+					this[this.type] = e.value;
+					console.log('value=>' + e.value);
+					this.date = e.value
+				}
+			},
+			//点击减号
+			bindMinus() {
+				var num = this.num;
+				if (num > 1) {
+					num--;
+					this.num = num;
+					this.ismaxNormal = true
+				} else {
+					this.isminNormal = false
+				}
+
+			},
+			//点击加号
+			bindPlus() {
+				var num = this.num;
+				if (num < 12) {
+					num++;
+					this.num = num;
+					this.isminNormal = true
+				} else {
+
+					this.ismaxNormal = false
+				}
+			},
+			bindManual(e) {
+				var num = e.detail.value;
+				this.num = num;
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.normal {
+		display: inline-block;
+	}
+
+	.disabled {
+		background: #f1f1f1 !important;
+	}
+
+	.hide {
+		display: none !important;
+	}
+
+	.show {
+		display: block !important;
+	}
+
+	.zhezhao {
+		width: 100%;
+		background: rgba(0, 0, 0, 0.3);
+		height: 100%;
+		z-index: 98;
+		position: fixed;
+		top: 122rpx;
+		bottom: 0;
+	}
+
+	.backWhite {
+		background: #fff;
+	}
+
+	.odr_module {
+		width: 100%;
+		background: #fff;
+		position: fixed;
+		bottom: 172rpx;
+		border: 1px solid #f1f1f1;
+		border-top-left-radius: 30rpx;
+		border-top-right-radius: 30rpx;
+		z-index: 99;
+
+		.date_btn {
+			button {
+				color: #8e8e8e;
+				background: #fff;
+				border: 1px dashed #f1f1f1;
+				border-radius: 8rpx;
+				height: 60rpx;
+				line-height: 60rpx;
+				font-size: 26rpx;
+			}
+
+
+		}
+
+		.stepper {
+			width: 250rpx;
+			display: flex;
+
+			text {
+				border: 1px solid #23c1bb;
+				color: #23c1bb;
+				margin-left: 10rpx;
+				margin-right: 10rpx;
+				width: 42rpx;
+				height: 42rpx;
+				display: inline-block;
+				text-align: center;
+				line-height: 42rpx;
+				border-radius: 6rpx;
+			}
+
+			input {
+				text-align: center;
+				border: 1px solid #f1f1f1;
+				color: #8e8e8e;
+				width: 102rpx;
+				height: 42rpx;
+				border-radius: 6rpx;
+			}
+
+		}
+
+		.cont_t {
+			padding: 30rpx;
+
+			.specs {
+				display: block;
+				padding: 0 20rpx;
+			}
+
+			.span-tit {
+				padding: 40rpx 0;
+				font-size: 26rpx;
+			}
+
+			.clr23c0ba {
+				color: #23c0ba;
+				font-size: 20rpx;
+			}
+
+			.spec {
+				display: inline-block;
+				margin-top: 10rpx;
+
+				text {
+					background: #fff;
+					color: #8e8e8e;
+					font-size: 26rpx;
+					margin-right: 10rpx;
+					padding: 6rpx 24rpx;
+					border-radius: 20rpx;
+					border: 1px solid #eeeeee;
+				}
+
+				.activeClass {
+					background: #23c0bb;
+					color: #ffffff;
+					border: 1px solid #23c0bb;
+				}
+
+				.errorClass {
+					background: #fff;
+					color: #8e8e8e;
+					border: 1px solid #eeeeee;
+				}
+			}
+
+			.w21 {
+				width: 21rpx;
+				height: 21rpx;
+				padding-right: 10rpx;
+			}
+
+			.top_T {
+				border-bottom: 1px solid #f1f1f1;
+			}
+
+			.md_title {
+				font-size: 32rpx;
+			}
+		}
+
+		.w28 {
+			width: 28rpx;
+			height: 28rpx;
+			position: absolute;
+			right: 30rpx;
+			top: 30rpx;
+		}
+	}
+
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #ffffff;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.clr_fff {
+			color: #000000;
+			font-size: 34rpx;
+		}
+
+		.icon-zuo {
+			color: #000000;
+		}
+	}
+
+	.pd_t123 {
+		padding-top: 123rpx;
+	}
+
+	.subscribe_btn {
+		width: 400rpx;
+		height: 95rpx;
+		line-height: 95rpx;
+		font-size: 36rpx;
+		color: #fff;
+		background: #23C1BB;
+		border-radius: 60rpx;
+		align-self: center;
+	}
+
+	.w186 {
+		width: 186rpx;
+	}
+
+	.mrtb30 {
+		margin: 30rpx 0;
+	}
+
+	.goodsdtBtn {
+		background: #23c1bb;
+		color: #fff;
+		font-size: 36rpx;
+	}
+
+	.w55 {
+		width: 55rpx;
+		height: 77rpx;
+	}
+
+	.w77 {
+		width: 177rpx;
+		display: flex;
+		border-left: 1px solid #ede9e6;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.goodsDtfooter {
+		height: 200rpx;
+		position: fixed;
+		bottom: 0;
+		background: #fff;
+		border-top: 1px solid #ede9e6;
+		z-index: 99;
+	}
+
+	.thicon {
+		background: #fb1c39;
+		color: #fff;
+		padding: 2rpx 10rpx;
+		border-radius: 10rpx;
+	}
+
+	.bzview {
+		padding: 20rpx 0;
+		background: #fff;
+		border-top: 1px solid #fdfdfd;
+	}
+
+	.dtxq {
+		margin-top: 15rpx;
+		padding: 20rpx 0;
+		background: #fff;
+		padding-bottom: 200rpx;
+	}
+
+	.w103 {
+		width: 103rpx;
+		height: 39rpx;
+		padding-top: 15rpx;
+		margin-right: 40rpx;
+	}
+
+	.dtdes {
+		color: #939393;
+		font-size: 24rpx;
+	}
+
+	.dtxq-title {
+		color: #939393;
+		font-size: 36rpx;
+		text-align: center;
+		padding: 30rpx 0;
+	}
+
+	.originalPrice {
+		color: #939393;
+		text-decoration: line-through;
+	}
+
+	.price {
+		color: #fb1c39;
+		font-size: 36rpx;
+	}
+</style>

@@ -1,0 +1,245 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="clr_fff">分销管理</view>
+		</view>
+		<view class="pt123">
+			<view class="m_all">
+				<view class="uni-flex">
+					<view class="m_sy">收益总额： ￥{{sum}}</view>
+					<view>已提现：￥{{withdraw_sum}}</view>
+				</view>
+				<view class="uni-flex">
+					<view class="m_link" @tap="returnsDetail">收益明细</view>
+					<view>最低可提现：￥{{min_money}}</view>
+				</view>
+			</view>
+			<view class="m_small uni-flex">
+				<view>
+					<view class="m_ky">￥{{money}}</view>
+					<view>可提现</view>
+				</view>
+				<view class="m_btn">
+					<button class="button" @tap="cashAppTap">申请提现</button>
+				</view>
+			</view>
+			<view :class="[cashShow ? 'show' : 'hide' ]">
+				<form>
+					<view class="m-item">
+						<view class="label">收益提现</view>
+						<view>
+							<input v-model="applyMoney" class="uni-input" name="input" placeholder="请输入提现金额" />
+						</view>
+						 
+					</view>
+					<view class="m_btn">
+						<button class="button" @tap="subAppTap">确认提现</button>
+					</view>
+				</form>	
+			</view>
+			
+			
+			
+			
+		</view>
+		
+		
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},	
+				dd:"12",
+				token:'',
+				cashShow:false,
+				applyMoney:'',
+				money:0.00,   //余额
+				min_money:0.00,  //最小提现金额
+				sum:0.00,        //收益总金额
+				withdraw_sum:0.00  //已经提现金额
+			}
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			this.token= uni.getStorageSync('token')
+		},
+		onLoad() {
+			this.appNumInfoAPI();
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			returnsDetail(){
+				uni.navigateTo({
+					url:"../withdrawal/withdrawal"
+				})
+			},
+			cashAppTap(){
+				this.cashShow= !this.cashShow
+			},
+			subAppTap(){
+				this.appNumAPI();
+			},
+			async appNumInfoAPI() {
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'Withdraw.info',
+						token: this.token
+					},
+					header: {
+						'content-type': 'application/form'
+					}
+				});
+				console.log("提现信息");
+				console.log(res);
+				this.money = res.data.data.money;
+				this.min_money = res.data.data.min_money;
+				this.sum = res.data.data.sum;
+				this.withdraw_sum = res.data.data.withdraw_sum
+				
+				console.log(res.data.data.sum);
+			},
+			async appNumAPI() {
+				
+				this.applyMoney.replace(/^(\-)*(\d+)\.(\d\d).*$/, '$1$2.$3'); //允许输入两位小数
+				
+				let applyMoney=parseFloat(this.applyMoney);
+				let min_money=parseFloat(this.min_money);
+				console.log(this.applyMoney)
+				console.log(this.min_money)
+				if(applyMoney<min_money){
+					uni.showToast({
+						 title: '不能小于最低提现金额：'+this.min_money, 
+						 duration: 3000,
+						 icon:"none"
+					 })	
+				}else{
+					const res = await this.$myRequset({
+						url: '/api',
+						method: 'POST',
+						data: {
+							operate: 'Withdraw.add_withdraw',
+							token: this.token,
+							apply_money:this.applyMoney
+						},
+						header: {
+							'content-type': 'application/form'
+						}
+					});
+					console.log("提现申请");
+					console.log(res);
+					uni.showToast({
+						 title: res.data.info, 
+						 duration: 2000,
+						 icon:"none"
+					 })	
+					 setTimeout(function(){
+						 uni.navigateTo({
+						 	url:"../distribution/distribution"
+						 })
+					 },2000)
+					 
+				}
+				
+			
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.m_all{
+		background: #fff;
+		padding: 20rpx 30rpx;
+		border-bottom: 2rpx solid #eaeaea;
+		font-size: 24rpx;
+		
+	}
+	.m_small{
+		background: #fff;
+		padding: 20rpx 30rpx;
+		border-bottom: 2rpx solid #eaeaea;
+		font-size: 24rpx;
+		justify-content: space-between;
+	}
+	.m_all view{
+		justify-content: space-between;
+		font-size: 24rpx;
+		color: #7f7f7f;
+		height: 60rpx;
+		line-height: 60rpx;
+	}
+	.m_ky{
+		font-size: 28rpx;
+		color: #000000;
+		font-weight: bold;
+	}
+	.m-item{
+		padding: 30rpx;
+		.label{			
+			padding-bottom: 20rpx;
+		}
+	}
+	.m_btn{
+		margin-top: 20rpx;
+		.button{
+			width: 170rpx;
+			height: 60rpx;
+			background: #2FCECE;
+			color: #fff;
+			line-height: 60rpx;
+			text-align: center;
+			font-size: 28rpx;
+		}
+	}
+	.m_link{
+		color: #2FCECE!important;
+		font-size: 28rpx!important;
+	}
+	.m_sy{
+		color: #2c2c2c!important;
+		font-size: 28rpx!important;
+	}
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.clr_fff {
+			color: #fff;
+			font-size: 35rpx;
+		}
+	}
+</style>

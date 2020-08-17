@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "护工服务项目",
+  "usingComponents": {
+    "mx-date-picker": "/components/mx-datepicker/mx-datepicker"
+  }
+}

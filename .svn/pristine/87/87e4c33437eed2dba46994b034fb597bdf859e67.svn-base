@@ -1,0 +1,74 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="clr_fff">分销管理</view>
+		</view>
+		<view class="pt123">
+			
+			
+			
+			
+			
+			
+		</view>
+		
+		
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				}
+			}
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.clr_fff {
+			color: #fff;
+			font-size: 35rpx;
+		}
+	}
+</style>

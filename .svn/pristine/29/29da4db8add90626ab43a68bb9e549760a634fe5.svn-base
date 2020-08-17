@@ -1,0 +1,299 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="top_title">健康百科</view>
+		</view>
+		<view class="pd-t135">
+			<view class="head_cont" @tap="openDetail">
+				<image :src="fullImg"></image>
+				<text class="head_title">{{full_title}}</text>
+			</view>
+		</view>
+		<view class="list">
+			<view class="uni-padding-wrap backWhite wauto80" v-for="(item,index) in infoList" :key="index">
+				<view class="uni-flex info_item" @tap="openUrl(index)">
+					<view class="info">
+						<view class="title">
+							<span class="tag">{{item.label}}</span>
+							<text>{{ item.title }}</text>
+						</view>
+						<view class="des">
+							<text class="newsdata">{{ item.create_time }}</text>
+							<image class="w23" src="https://test134.vrapp.chot.cn/mini/picture/news_eye.png"></image> <text class="newsdata">{{ item.number }}</text>
+						</view>
+					</view>
+					<view class="imgRignt">
+						<image class="newsImg" :src="item.thumb"></image>
+					</view>
+				</view>
+			</view>
+			<uni-load-more :status="status" :content-text="contentText" />
+
+		</view>
+	</view>
+</template>
+
+<script>
+	import uniLoadMore from '../../components/uni-load-more/uni-load-more.vue';
+	export default {
+		name: "news",
+		components: {
+			uniLoadMore
+		},
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},
+				infoList: [],
+				fullImg: '',
+				full_title: '',
+				contentText: {
+					contentdown: '上拉加载更多',
+					contentrefresh: '加载中.....',
+					contentnomore: '没有更多数据啦'
+				},
+				page: 1,
+				status: 'more',
+				pageSize: 10,
+				banner: []
+			}
+		},
+		onLoad() {
+			this.getList();
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+		},
+		onReachBottom() {
+			this.page++;
+			if (this.status != 'more') {
+				return false;
+			}
+			this.status = 'more'; //设置sataus是更多
+			this.getList(); //加载的数据
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			openUrl(index) {
+				uni.navigateTo({
+					url: "../../pages/newDetail/newDetail?news_id=" + this.infoList[index].id 
+				})
+			},
+			openDetail() {
+				uni.navigateTo({
+					url: "../../pages/newDetail/newDetail?news_id=" + this.banner.id
+				})
+			},
+			async getList() {
+				const res = await this.$myRequset({
+					url: '/api',
+					data: {
+						operate: 'News.index',
+						page: this.page
+					}
+				});
+				this.banner = res.data.data.list.one;
+				this.full_title = this.banner.title;
+				this.fullImg = this.banner.thumb;
+				let resList = res.data.data.list.list;
+				let list = this.setTime(resList);
+				this.infoList = this.infoList.concat(list);
+				for (let i = 0; i < this.infoList.length; i++) {
+					if (this.infoList[i].label === '') {
+						this.infoList[i].label = '生活'
+					} else {
+						this.infoList[i].label = this.infoList[i].label.substr(0, 2);
+					}
+				}
+				this.infoList.shift();
+				let pages = Math.ceil(res.data.data.list.count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+				}
+			},
+			setTime: function(items) {
+				var newItems = [];
+				items.forEach(e => {
+					newItems.push({
+						title: e.title,
+						label: e.label,
+						thumb: e.thumb,
+						create_time: e.create_time,
+						number: e.number,
+						link: e.link,
+						id: e.id
+					});
+				});
+				return newItems;
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	uni-link {
+		display: block;
+		opacity: 0;
+	}
+
+	.demo {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #fff;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+		color: #000;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+
+			.icon-zuo {
+				color: #000000;
+			}
+		}
+	}
+
+	.info_item {
+		background-color: #fff;
+		margin-bottom: 20rpx;
+	}
+
+	.top_title {
+		font-size: 34rpx;
+	}
+
+	.pd-t135 {
+		padding-top: 135rpx;
+		display: flex;
+		align-items: center;
+		position: relative;
+		justify-content: center;
+
+		.head_cont {
+			width: 680rpx;
+			height: 347rpx;
+			margin: 30rpx 0;
+			border-radius: 10rpx;
+			overflow: hidden;
+			position: relative;
+
+			image {
+				display: block;
+				max-width: 680rpx;
+				width: 100%;
+				height: 347rpx;
+				position: absolute;
+				// opacity: .3;
+				z-index: 0;
+			}
+		}
+
+		.head_title {
+			color: #fff;
+			font-size: 32rpx;
+			letter-spacing: 4rpx;
+			position: absolute;
+			overflow: hidden;
+			padding: 30rpx 40rpx 0;
+			display: inline-block;
+			font-weight: bolder;
+
+		}
+	}
+
+	.newsImg01 {
+		width: 680rpx;
+		height: 347rpx;
+		margin: 30rpx;
+	}
+
+	.newsImg {
+		width: 150rpx;
+		height: 150rpx;
+		align-self: center;
+		padding: 20rpx 0;
+	}
+
+	.info {
+		padding-right: 50rpx;
+		padding-top: 25rpx;
+		width: 70%;
+		position: relative;
+	}
+
+	.wauto80 {
+		width: 82%;
+		margin: 10rpx auto 0;
+		border-radius: 10rpx;
+	}
+
+	.imgRignt {
+		display: flex;
+	}
+
+	.w23 {
+		width: 23rpx;
+		height: 14rpx;
+		padding-right: 10rpx;
+	}
+
+	.newsdata {
+		padding-right: 80rpx;
+		font-size: 24rpx;
+	}
+
+	.tag {
+		background: #00c4bc;
+		border-top-left-radius: 10rpx;
+		border-bottom-right-radius: 10rpx;
+		color: #fff;
+		font-size: 20rpx;
+		padding: 4rpx 10rpx;
+		margin-right: 20rpx;
+	}
+
+	.title {
+		display: -webkit-box;
+		word-break: break-all;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		line-height: 40rpx;
+	}
+
+	.title text {
+		color: #000000;
+		font-size: 30rpx;
+		font-weight: bold;
+	}
+
+	.des {
+		font-size: 20rpx;
+		color: #c3c3c3;
+		position: absolute;
+		bottom: 20rpx;
+	}
+</style>

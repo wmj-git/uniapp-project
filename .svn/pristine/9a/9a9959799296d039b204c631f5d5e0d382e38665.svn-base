@@ -1,0 +1,287 @@
+<template>
+	<view class="container prohibition">
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="top_title">本店佣金统计</view>
+		</view>
+		<view class="content">
+			<view class="operate_box">
+				<button class="operate_btn" v-for="(item,index) in btn_Arr" :class="{'active':add_class==index}" @tap="addClass(index)">{{item.title}}</button>
+			</view>
+		</view>
+		<view v-if="add_class == 0" class="detail_subsidiary">
+			<view class="list_box" v-for="(list,index) in selList">
+				<view class="list_head">
+					<image :src="list.head" mode="widthFix"></image>
+				</view>
+				<view class="detail_box">
+					<view class="detail_item">
+						<text class="item_first">收益：￥<text class="high_text">{{ list.earnings }}</text>元</text>
+						<text class="item_title"><text class="color_text">{{ list.service }}</text></text>
+					</view>
+					<view class="detail_item">
+						<text class="item_first">{{ list.date }}</text>
+						<text class="item_title">实际付款：￥<text class="real_price">{{ list.realPrice }}</text>元</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view v-else-if="add_class == 1" class="content_box">
+			<view class="record_title">
+				<text>时间</text>
+				<text>金额(元)</text>
+				<text>状态</text>
+			</view>
+			<view v-for="(item,index) in recordList" class="record_list list_item">
+				<text class="item date">{{item.date}}</text>
+				<text class="item price">{{item.price}}.00</text>
+				<text class="item status">{{item.status}}</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		name: "withdrawal",
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},
+				add_class: '',
+				btn_Arr: [{
+						title: "佣金明细"
+					},
+					{
+						title: "提现记录"
+					}
+				],
+				recordList: [{
+					date: "2020-01-05 15:30",
+					price: "15",
+					status: "提现"
+				}], // 提现记录
+				selList: [{
+					head: "https://test134.vrapp.chot.cn/mini/picture/headimg_default.png",
+					earnings: 150,
+					service: "家护师",
+					date: "2020-01-05 15:30",
+					realPrice: 20
+				}, {
+					head: "https://test134.vrapp.chot.cn/mini/picture/headimg_default.png",
+					earnings: 150,
+					service: "家护师",
+					date: "2020-01-05 15:30",
+					realPrice: 20
+				}] // 佣金明细
+			}
+		},
+		onLoad() {
+			this.getList();
+			this.getRecord();
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			addClass(index) {
+				this.add_class = index;
+			},
+			getList() {
+				console.log('获取资金明细');
+			},
+			getRecord() {
+				console.log('获取提现记录');
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx; 
+			margin: auto;
+		}
+
+		.top_title {
+			color: #fff;
+			font-size: 35rpx;
+		}
+	}
+
+	.content {
+		width: 100%;
+
+		.operate_box {
+			width: 80%;
+			margin: 20rpx auto;
+
+			.operate_btn {
+				width: 50%;
+				height: 70rpx;
+				line-height: 70rpx;
+				font-size: 30rpx;
+				display: inline-block;
+				text-align: center;
+				color: $uni-color-theme;
+				border: 2px solid $uni-color-theme;
+
+				&::after {
+					border: none;
+				}
+
+				&:first-child {
+					border-right: 0;
+					border-radius: 10rpx 0 0 10rpx;
+				}
+
+				&:last-child {
+					border-radius: 0 10rpx 10rpx 0;
+				}
+
+				&.active {
+					background-color: $uni-color-theme;
+					color: #fff;
+				}
+			}
+		}
+	}
+
+	.content_box {
+		.record_title {
+			background-color: #fff;
+		}
+
+		.record_title,
+		.record_list {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100rpx;
+
+			& text {
+				width: 280rpx;
+				text-align: center;
+			}
+
+			&.list_item {
+				padding: 0 10rpx;
+			}
+		}
+
+		.record_list {
+			border-bottom: 1px solid #d9d9d9;
+
+			& .date {
+				flex: 1;
+			}
+
+			& .price {
+				flex: .8;
+				text-align: left;
+				font-weight: bold;
+				padding-left: 40rpx;
+			}
+
+			& .status {
+				flex: .8;
+				background-color: rgba(100, 204, 232, .2);
+				color: $uni-color-theme;
+			}
+		}
+	}
+
+	.detail_subsidiary {
+		background-color: #fff;
+		padding: 10rpx 20rpx;
+
+		.list_box {
+			display: flex;
+			align-items: center;
+			padding: 20rpx 0;
+
+			.detail_box {
+				flex: 2;
+				padding-bottom: 10rpx;
+				border-bottom: 1px solid #eee;
+			}
+
+			.list_head {
+				margin-right: 20rpx;
+				line-height: 0;
+
+				image {
+					width: 100rpx;
+					height: 100rpx;
+				}
+			}
+
+			& .detail_item {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				text {
+					font-size: 26rpx;
+					color: #949494;
+
+					&.high_text {
+						font-size: 30rpx;
+						font-weight: bold;
+						margin: 0 5rpx;
+						color: #000;
+					}
+				}
+
+				.item_first {
+					flex: 2;
+				}
+
+				.item_title {
+					flex: 1.8;
+					text-align: right;
+					padding-right: 10rpx;
+
+					.real_price {
+						color: #000;
+						margin: 0 5rpx;
+					}
+
+					& .color_text {
+						color: $uni-color-theme;
+						padding: 10rpx;
+						border-radius: 5rpx;
+						background-color: rgba(100, 204, 232, .2);
+					}
+				}
+			}
+		}
+	}
+</style>

@@ -1,0 +1,911 @@
+<template>
+	<view class="container prohibition">
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="top_title">预约订单</view>
+		</view>
+		<view class="pd_t123">
+			<!-- 判断是否授权 -->
+			<view :class="[checkSHide ? 'show' : 'hide' ]">
+				<image class="auth-img" src="https://test134.vrapp.chot.cn/mini/picture/auto_imgorder.jpg"></image>
+				<view class="auth_text">由于您没有授权本页面无法展示</view>
+				<view class="auth_text">更多信息为了您更好的用户体验，请授权登录</view>
+				<view class="form_btn">
+					<button class='testbutton' open-type="getUserInfo" @getuserinfo="getUserinfo" withCredentials="true">登录</button>
+				</view>
+
+			</view>
+			<view>
+				<!-- 顶部导航栏 -->
+				<view class="horizonal-tab">
+					<scroll-view scroll-x="true" scroll-with-animation class="scroll-tab" :style="{ top: top_val + 'rpx'}">
+						<block v-for="(item,index) in tabBars" :key="index">
+							<view class="scroll-tab-item" :class="{'active': tabIndex==index}" @tap="toggleTab(index)">
+								{{item.name}}
+								<view class="scroll-tab-line"></view>
+							</view>
+						</block>
+						<view class="change">
+							<navigator url="../../pagesB/order/order" hover-class="none">
+								<image class="change_img" src="https://test134.vrapp.chot.cn/mini/picture/switch.png"></image>
+							</navigator>
+						</view>
+					</scroll-view>
+				</view>
+
+				<!-- 内容区 -->
+				<view class="" :class="[checkSShow ? 'show' : 'hide' ]">
+					<!-- 滑块视图 -->
+					<view class="content" :style="{ 'margin-top': margin_top + 'rpx'}">
+						<view class="items">
+							<view class="order_img">
+								<image src="https://test134.vrapp.chot.cn/mini/picture/list_none.png" mode="widthFix" :class="[isEmpty?'show':'hide']"></image>
+							</view>
+							<view class="item" v-for="(items,index1) in queryList" :key="index1" @tap="detail_all(index1)">
+								<view>订单号：<text>{{items.order_no}}</text><text class="item_title">{{ items.goods_title }}</text></view>
+								<view class="orderid">
+									<view class="title">
+										被护理人：<text>{{items.name}}</text>
+										<!-- //已支付 -->
+										<view class="btn" :class="[ items.status=='待护理'&& orderShow ? 'show' : 'hide' ]"><button class="btn_pj"
+											 @tap.stop="confirmTap(index1)">确认护理</button></view>
+									</view>
+
+									<image class="sucessImg" src="https://test134.vrapp.chot.cn/mini/picture/135_57.png" mode="widthFix"></image>
+									<text class="statusText">{{items.status}}</text>
+								</view>
+
+								<view class="info">
+									<view v-for="(item1,index2) in items.nurse" :key="index2">
+										<view class="uni-flex work_item">
+											<text class="item_name font_item">护工：<text class="major_text">{{ item1.name }}</text></text>
+											<text class="item_name font_item">年龄：<text class="age">{{ item1.age }}岁</text></text>
+										</view>
+										<view class="uni-flex work_item">
+											<view class="font_item" @click.stop="callPhone(index1)">电话：<text class="major_text phone">{{ item1.tel }}</text>
+												<image class="phone_img" src="https://test134.vrapp.chot.cn/mini/picture/phone.png" />
+											</view>
+										</view>
+										<view class="uni-flex work_item">
+											<text class="font_item introduce">护工简介：<text class="sub_text">{{ item1.introduce }}</text></text>
+										</view>
+									</view>
+								</view>
+								<view class="pay_btn" v-show="items.status =='待支付'">
+									<button class="payNow" @click.stop="pay_order(index1)" hover-class="active">立即支付</button>
+								</view>
+							</view>
+
+
+						</view>
+					</view>
+					<uni-load-more :status="status" :content-text="contentText" />
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import app from "../../App.vue"
+	import uniLoadMore from '../../components/uni-load-more/uni-load-more.vue';
+	const mid = uni.getStorageSync('mid');
+	export default {
+		components: {
+			uniLoadMore
+		},
+		data() {
+			return {
+				tabIndex: 0,
+				/* 选中标签栏的序列,默认显示第一个 */
+				page: 1,
+				pageSize: 10,
+				list_count: 0,
+				orderShow: true,
+				checkSHide: false,
+				checkSShow: false,
+				status: 'loading',
+				isEmpty: false,
+				contentText: {
+					contentdown: '上拉加载更多',
+					contentrefresh: '加载中.....',
+					contentnomore: '没有更多数据啦'
+				},
+				tabBars: [{
+						name: '全部订单',
+						id: 'all'
+					}, {
+						name: '待护理',
+						id: 'nursing'
+					}, {
+						name: '正在护理',
+						id: 'nursing'
+					},
+					{
+						name: '已完成',
+						id: 'finshed'
+					}
+
+				],
+				demo: {
+					top: 0,
+					height: 0
+				},
+				data: {},
+				queryList: [],
+				order_no: "",
+				token: "",
+				statusText: '',
+				nurse_id: null,
+				top_val: 0, //top值
+				margin_top: 0
+
+			}
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+		},
+		onReachBottom(e) {
+			this.page++;
+			if (this.tabIndex == 0) {
+				var status = "";
+				this.statusText = "全部";
+				this.getNurseListMore(status);
+
+			} else if (this.tabIndex == 1) {
+				var status = 3;
+				this.statusText = "待护理";
+				this.getNurseListMore(status);
+
+			} else if (this.tabIndex == 2) {
+				var status = 4;
+				this.statusText = "正在护理";
+				this.getNurseListMore(status);
+			} else if (this.tabIndex == 3) {
+				var status = 5; // 预约成功
+				this.statusText = "已完成";
+				this.getNurseListMore(status);
+			}
+
+		},
+		onShow() {
+			this.tabIndex = 0;
+		},
+		onLoad() {
+			var _this = this;
+			uni.checkSession({
+				success() {
+					console.log('ok');
+
+					app.wxLogin().then(res => {
+
+						app.updateUserInfo();
+						_this.token = app.globalData.token;
+						_this.checkSHide = false;
+						_this.checkSShow = true;
+						// session_key 未过期，并且在本生命周期一直有效
+						//获取用户角色																					
+						_this.roleAPI();
+						// var status = app.globalData.orderStatus;
+						var status = '';
+						_this.getNurseList(status);
+						let mobile_phone = uni.getSystemInfoSync(); // 手机信息
+						if (mobile_phone.windowWidth <= 320) { //、 iphone5
+							_this.top_val = (_this.demo.height + _this.demo.top) * 2 + 13;
+							_this.margin_top = _this.demo.height + _this.demo.top;
+						} else if (mobile_phone.safeArea.bottom >= 812) { // iphone XR
+							_this.top_val = (_this.demo.height + _this.demo.top) * 2 - 8;
+							_this.margin_top = _this.demo.height + _this.demo.top;
+						} else {
+							_this.top_val = (_this.demo.height + _this.demo.top) * 2;
+							_this.margin_top = _this.demo.height + _this.demo.top;
+						}
+					})
+
+				},
+				fail() {
+					// session_key 已经失效，需要重新执行登录流程
+					//wx.login() // 重新登录
+					console.log('expire');
+					app.wxLogin().then(res => {
+						_this.token = app.globalData.token;
+						_this.checkSHide = true;
+						_this.checkSShow = false;
+					})
+				}
+			})
+
+
+
+		},
+		methods: {
+			// 获取微信用户信息
+			getUserinfo: function() {
+				var that = this;
+				uni.getUserInfo({
+					success: function(res) {
+						var userInfo = res.userInfo
+						that.nickName = userInfo.nickName //昵称
+						that.avatarUrl = userInfo.avatarUrl //头像
+						var gender = userInfo.gender //性别 0：未知、1：男、2：女
+						var province = userInfo.province
+						var city = userInfo.city
+						var country = userInfo.country
+						uni.request({
+							url: 'https://test134.vrapp.chot.cn/api', //服务器端地址
+							data: {
+								operate: "MemberCenter.update",
+								token: that.token,
+								nickname: that.nickName,
+								headimg: that.avatarUrl
+							},
+							method: 'POST',
+							header: {
+								'content-type': 'application/json'
+							},
+							success: (res) => {
+								console.log("向后台更新信息");
+								console.log(res);
+								if (res.data.code == 1) {
+									that.checkSHide = false;
+									that.checkSShow = true;
+									uni.reLaunch({
+										url: "../worker/worker"
+									})
+								}
+							},
+						});
+
+					},
+					fail: res => {
+						uni.showToast({
+							title: '获取微信信息失败',
+							duration: 2000,
+							icon: "none"
+						})
+					}
+				})
+			},
+			confirmTap(index) {
+				let _this = this;
+				uni.showModal({
+					content: '是否确认护理？',
+					success: function(res) {
+						if (res.confirm) {
+							console.log('确认护理');
+							_this.confirmResAPI(index);
+
+						} else if (res.cancel) {
+							uni.showToast({
+								title: "取消确认",
+								icon: "none"
+							});
+						}
+					}
+				});
+			},
+			async roleAPI() {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "MemberCenter.member_bing",
+						token: this.token,
+					}
+				})
+				// is_nurse = function(){
+				// 	let nurse_rule_id = 2;
+				// 	let ruleList = [1,2,3];
+				// 	if(ruleList.indexOf(nurse_rule_id) > -1) {
+				// 		reture true;
+				// 	} else {
+				// 		reture false;
+				// 	}
+				// };
+
+				// name = 'admin_node';
+
+				// config = {
+				// 	"orderShow" : [4,5,6],
+
+				// };
+
+				// let is_show = function(node_name) {
+				// 	let urle_list = [1,2,3];
+
+				// 	if(typeof config[node_name] != "undefined") {
+				// 		let aSet = new Set(urle_list)
+				// 		let bSet = new Set(config[node_name])
+				// 		// 交集
+				// 		let intersection = Array.from(new Set(a.filter(v => bSet.has(v)))) // [2]
+
+				// 		if(intersection.length > 0) return true;
+				// 	}
+
+				// 	return false;
+				// }
+
+				// this.orderShow = is_show('orderShow');
+
+				let arrType = res.data.data.list;
+				console.log("arrType")
+				console.log(arrType)
+				arrType.forEach((item, index) => {
+					if (item.type == 1) {
+						this.orderShow = true;
+						return false;
+					}
+
+				})
+
+
+				if (arrType == []) {
+
+					let arrMember = res.data.data.member;
+					arrMember.forEach((item, index) => {
+						if (item.role == 1 || item.role == 2 || item.role == 3) {
+							this.orderShow = false;
+							return false;
+						}
+					})
+				}
+
+
+
+			}, //确认护理事件
+			async confirmResAPI(index) {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Member.AppointOrder.up_status",
+						token: this.token,
+						order_no: this.queryList[index].order_no
+					}
+				})
+				console.log("order_no")
+				console.log(res)
+				this.getNurseList(app.globalData.orderStatus);
+			},
+			navsHandleClick(i) {
+				this.current = i;
+			},
+			intervalChange(e) {
+				this.current = e.detail.current;
+			},
+			//切换选项卡
+			toggleTab(index) {
+				this.tabIndex = index;
+				this.page = 1;
+				this.status = 'loading';
+				this.isEmpty = false;
+				switch (this.tabIndex) {
+					case 1:
+						var status = 3 // 待护理
+						this.getNurseList(status);
+						break;
+					case 2:
+						var status = 4 // 正在护理
+						this.getNurseList(status);
+						break;
+					case 3:
+						var status = 5 // 已完成
+						this.getNurseList(status);
+						break;
+					default:
+						var status = "" // 默认显示全部
+						this.getNurseList(status);
+						break;
+				}
+			},
+			//滑动切换swiper
+			tabChange(e) {
+				this.tabIndex = e.detail.current;
+			},
+			// 支付订单
+			async pay_order(index) {
+				let order_no = this.queryList[index].order_no;
+				console.log('订单号',order_no);
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						token: this.token,
+						operate: "member.pay.wx_jsapi",
+						order_no: order_no
+					},
+					header: {
+						'content-type': 'application/form',
+					}
+				});
+				if (res.data.code == 1) {
+					let param = res.data.data;
+					uni.requestPayment({
+						provider: 'wxpay',
+						timeStamp: param.timeStamp,
+						nonceStr: param.nonceStr,
+						package: param.package,
+						signType: param.signType,
+						paySign: param.paySign,
+						success: function(res) {
+							uni.showToast({
+								title: "支付成功",
+								icon: "loading"
+							});
+							uni.reLaunch({
+								url: "../worker/worker"
+							});
+						},
+						fail: function(err) {
+							console.log('fail:' + JSON.stringify(err));
+							uni.showToast({
+								title: "取消支付",
+								icon: "loading"
+							});
+						}
+					});
+				}
+			},
+			detail_all(index) {
+				let nurse = {};
+				this.queryList[index].nurse.forEach((val) => {
+					nurse = val;
+				});
+				let order_no = this.queryList[index].order_no;
+				let caregivers_id = this.queryList[index].caregivers_id;
+				let nurse_id = nurse.nurse_id;
+				let appoint_id = nurse.id;
+				let appointment_id = this.queryList[index].appointment_id;
+				let status = this.queryList[index].status;
+				let unit = this.queryList[index].unit;
+				uni.navigateTo({
+					url: "../workerAllDetail/workerAllDetail?order_no=" + order_no + "&caregivers_id=" + caregivers_id +
+						"&nurse_id=" +
+						nurse_id + "&appoint_id=" + appoint_id + "&appointment_id=" + appointment_id + "&order_status=" + status +
+						"&unit=" + unit
+				})
+			},
+			callPhone(index) {
+				this.queryList[index].nurse.forEach((val) => {
+					uni.makePhoneCall({
+						phoneNumber: val.tel
+					});
+				});
+
+			},
+			async getNurseList(status) {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Member.AppointOrder.index",
+						token: this.token,
+						status: status,
+						page: this.page
+					},
+					header: {
+						'content-type': 'application/form'
+					},
+					success: (res) => {
+
+						this.queryList = []
+						console.log("开始")
+
+					}
+				});
+				this.queryList = res.data.data.list.list;
+				this.queryList.forEach((item, index) => {
+					if (item.status == 0) {
+						item.status = "已取消";
+					} else if (item.status == 1) {
+						item.status = "待支付";
+					} else if (item.status == 2) {
+						item.status = "待支付";
+					} else if (item.status == 3) {
+						item.status = "待护理";
+					} else if (item.status == 4) {
+						item.status = "正在护理";
+					} else if (item.status == 5) {
+						item.status = "已完成";
+					}
+					if (item.name == null) {
+						item.name = ""
+					}
+					item.nurse.forEach((val) => {
+						if (val.introduce == "") {
+							val.introduce = "暂无简介";
+						}
+					});
+				});
+				this.list_count = res.data.data.list.count;
+				if (this.list_count !== 0) {
+					this.status = "more";
+					this.isEmpty = false;
+					this.contentText.contentnomore = "没有更多数据啦"
+				} else {
+					this.status = "nomore";
+					this.isEmpty = true;
+					this.contentText.contentnomore = "您暂时没有相关订单哦"
+				}
+				let pages = Math.ceil(this.list_count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+				}
+				//uni.clearStorage();
+
+			},
+			async getNurseListMore(status) {
+				let data = {
+					operate: 'Member.AppointOrder.index',
+					token: this.token,
+					page: this.page,
+					status: status
+				}
+				const res = await this.$myRequset({
+					url: '/api',
+					method: "POST",
+					data: data
+				})
+				for (var i = 0; i < res.data.data.list.list.length; i++) {
+					this.queryList.push(res.data.data.list.list[i]); // 加载的数据追加在上一页后面										
+				}
+				this.queryList.forEach((item, index) => {
+					//console.log(item.status) 
+					if (item.status == 0) {
+						item.status = "已取消";
+					} else if (item.status == 1) {
+						item.status = "待支付";
+					} else if (item.status == 2) {
+						item.status = "待支付";
+					} else if (item.status == 3) {
+						item.status = "待护理";
+					} else if (item.status == 4) {
+						item.status = "正在护理";
+					} else if (item.status == 5) {
+						item.status = "已完成";
+					}
+					item.nurse.forEach((val) => {
+						if (val.introduce == "") {
+							val.introduce = "暂无简介";
+						}
+					});
+				});
+				let pages = Math.ceil(res.data.data.list.count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+				}
+			}
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.form_btn {
+		width: 80%;
+		text-align: center;
+		margin: 40rpx auto;
+		padding-bottom: 40rpx;
+	}
+
+
+	.form_btn button {
+		height: 80rpx;
+		border-radius: 40rpx;
+		color: white;
+		line-height: 80rpx;
+		background: linear-gradient(to right, #63cce7, #66ebdf);
+		box-shadow: 0 8rpx 26rpx 0 #2fcece;
+	}
+
+	.container {
+		background: #f9f9f9;
+		height: 100%;
+	}
+
+	.auth_text {
+		color: #484848;
+		text-align: center;
+	}
+
+	.auth-img {
+		width: 541rpx;
+		height: 387rpx;
+		margin: 60rpx auto 20rpx;
+		display: block;
+	}
+
+	.content {
+		background: #fefefe;
+		padding: 20rpx 0;
+
+		.item {
+			width: 86%;
+			margin: 26rpx auto;
+			background: #fff;
+			box-shadow: 0rpx 0rpx 6rpx 6rpx #e5e5e5;
+			border-radius: 20rpx;
+			padding: 27rpx;
+
+			.item_title {
+				background-color: rgba(100, 204, 232, .1);
+				padding: 10rpx;
+				color: $uni-color-theme;
+				border-radius: 50%;
+				margin-left: 10rpx;
+			}
+		}
+
+		.statusText {
+			position: absolute;
+			top: -46rpx;
+			right: -34rpx;
+			display: inline-block;
+			width: 122rpx;
+			height: 40rpx;
+			z-index: 99;
+			line-height: 40rpx;
+			color: #fff;
+			text-align: center;
+
+
+		}
+
+		.order_img {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			image {
+				width: 150rpx;
+				height: 150rpx;
+				padding: 80rpx 80rpx 20rpx;
+			}
+		}
+
+		.orderid {
+			position: relative;
+			padding-bottom: 27rpx;
+			border-bottom: 2px solid #e5e5e5;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			.title {
+				font-size: 28rpx;
+				color: #000000;
+				font-weight: normal;
+				flex: 2;
+
+				text {
+					font-weight: bold;
+				}
+			}
+
+			.sucessImg {
+				width: 135rpx;
+				height: 57rpx;
+				position: absolute;
+				top: -46rpx;
+				right: -34rpx;
+			}
+		}
+
+		.active {
+			color: #2FCECE !important;
+			border-color: #2FCECE !important;
+		}
+
+		.info {
+			padding-top: 25rpx;
+
+			.item_name {
+				flex: .8;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.font_item {
+				text {
+					color: #000000;
+					font-weight: normal;
+				}
+			}
+
+			.introduce {
+				word-break: break-all;
+				text-overflow: ellipsis;
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				overflow: hidden;
+				text-align: justify;
+			}
+
+			.work_item {
+				padding: 0;
+				display: flex;
+				align-items: center;
+
+				.phone_img {
+					width: 21rpx;
+					height: 21rpx;
+					margin-left: 10rpx;
+				}
+
+				.major_text {
+					color: #000;
+					font-weight: bold;
+				}
+
+				.phone {
+					color: #737373;
+				}
+
+				.sub_text {
+					color: #9e9e9e;
+					font-size: 24rpx;
+				}
+			}
+		}
+	}
+
+	.pay_btn {
+		padding-top: 20rpx;
+		text-align: right;
+		.payNow {
+			display: inline-block;
+			margin-left: 20rpx;
+			background: #fff;
+			color: #5b5a5a;
+			font-size: 24rpx;
+			border: 2px solid #f4f4f4;
+			border-radius: 40rpx;
+		
+			&::after {
+				border: none;
+			}
+		}
+		.active {
+			border-color: #d8d8d8;
+			color: #000;
+		}
+	}
+
+
+
+	.change {
+		float: left;
+		padding-left: 20rpx;
+	}
+
+	.change_img {
+		width: 40rpx;
+		height: 30rpx;
+		vertical-align: middle;
+		padding-top: 18rpx
+	}
+
+	.horizonal-tab {
+		background: #fff;
+	}
+
+	.horizonal-tab .active {
+		color: #23c0ba;
+	}
+
+	.scroll-tab {
+		white-space: nowrap;
+		/* 必要，导航栏才能横向*/
+		border-bottom: 1rpx solid #eee;
+		text-align: center;
+		position: fixed;
+		left: 0;
+		z-index: 1;
+		background-color: #fff;
+	}
+
+	.scroll-tab-item {
+		display: inline-block;
+		/* 必要，导航栏才能横向*/
+		width: 20%;
+		text-align: center;
+		padding-top: 20rpx;
+	}
+
+	.active .scroll-tab-line {
+		background: #23c0ba;
+		width: 90rpx;
+		height: 5rpx;
+		margin: 0 auto;
+	}
+
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.clr_fff {
+			color: #fff;
+			font-size: 35rpx;
+		}
+
+		.top_title {
+			color: #fff;
+			font-size: 34rpx;
+		}
+	}
+
+	.btn {
+		text-align: right;
+		padding-top: 20rpx;
+		position: relative;
+
+		.btn_pj {
+			background: #23c0ba;
+			border: none;
+			color: #fff;
+			font-size: 26rpx;
+			width: 150rpx;
+			height: 47rpx;
+			line-height: 47rpx;
+			padding: 0 10rpx;
+			display: inline-block;
+			position: absolute;
+			top: -10rpx;
+			right: 0;
+			margin-bottom: 10rpx;
+
+			&::after {
+				border: none;
+			}
+
+			&.verify_btn {
+				width: 126rpx;
+				background: rgba(100, 204, 232, .1);
+				color: $uni-color-theme;
+				margin-right: 20rpx;
+			}
+		}
+
+		.btn_change {
+			background: #fff;
+			border: 1px solid #4f4f4f;
+			color: #4f4f4f;
+			font-size: 26rpx;
+			width: 106rpx;
+			height: 47rpx;
+			line-height: 45rpx;
+			padding: 0;
+			display: inline-block;
+			margin-left: 20rpx;
+
+			&:after {
+				border: none;
+			}
+		}
+	}
+
+	.pd_t123 {
+		padding-top: 123rpx;
+	}
+</style>

@@ -1,0 +1,472 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="top_title">我的资料</view>
+		</view>
+		<view class="relative">
+			<view>
+				<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/my_bg.png"></image>
+			</view>
+			<view class="infor">
+				<view>
+					<view class="uni-flex uni-padding-wrap" style="padding-top: 45rpx;">
+						<view>
+							<image class="w140" :src="hasImg"></image>
+						</view>
+						<view class="uni-flex">
+							<view class="myinfo">
+								<view class="mytitle">{{ form.nickName }}</view>
+								<view class="myphone">{{ phone }}</view>
+							</view>
+						</view>
+						<view @tap="editFn" class="uni-flex edit_bar"><button class="edit_btn">编辑</button></view>
+					</view>
+					<view class="uni-padding-wrap youhui">
+						<view class="uni-list-item">
+							<view class="uni-padding-right uni-flex">
+								<view class="my_icon">
+									<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_xingbie.png"></image>
+								</view>
+								<view class="icon_text">
+									性别
+								</view>
+								<view class="right" v-show="edit===false">
+									{{ form.sex }}
+								</view>
+								<view class="" v-show="edit=== true">
+									<radio-group @change="radioChange">
+										<label class=" uni-list-cell-pd label-chorce label-chorce" v-for="(item, index) in items" :key="item.value">
+											<view>
+												<radio :value="item.value" :checked="index === current" />
+											</view>
+											<view>{{item.name}}</view>
+										</label>
+									</radio-group>
+								</view>
+							</view>
+						</view>
+						<view class="uni-list-item">
+							<view class="uni-padding-right uni-flex">
+								<view class="my_icon">
+									<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/nickname.png"></image>
+								</view>
+								<view class="icon_text">
+									昵称
+								</view>
+								<view class="right" v-show="edit=== false">
+									{{ form.nickname }}
+								</view>
+								<view class="right" v-show="edit=== true">
+									<input value="" placeholder="请输入昵称" class="uni-input" v-model="form.nickname">
+								</view>
+							</view>
+						</view>
+						<view class="uni-list-item">
+							<view class="uni-padding-right uni-flex">
+								<view class="my_icon">
+									<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_zhiye.png"></image>
+								</view>
+								<view class="icon_text">
+									职业
+								</view>
+								<view class="right" v-show="edit=== false">
+									{{ form.work }}
+								</view>
+								<view class="right" v-show="edit=== true">
+									<input value="" placeholder="请输入职业" class="uni-input" v-model="form.work">
+								</view>
+							</view>
+						</view>
+						<view class="uni-list-item">
+							<view class="uni-padding-right uni-flex">
+								<view class="my_icon">
+									<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_address.png"></image>
+								</view>
+								<view class="icon_text">
+									常住地
+								</view>
+								<view class="right" v-show="edit=== false">
+									{{ form.address }}
+								</view>
+								<view class="right" v-show="edit=== true">
+									<input value="" placeholder="请输入常住地" class="uni-input" v-model="form.address">
+								</view>
+							</view>
+						</view>
+						<view class="uni-list-item">
+							<view class="uni-padding-right uni-flex">
+								<view class="my_icon">
+									<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_qianming.png"></image>
+								</view>
+								<view class="icon_text">
+									个性签名
+								</view>
+								<view class="right" v-show="edit=== false">
+									{{ form.sign }}
+								</view>
+								<view class="right" v-show="edit=== true">
+									<input value="" placeholder="请输入个性签名" class="uni-input" v-model="form.sign">
+								</view>
+							</view>
+						</view>
+						<view v-show="edit=== true" class="uni-list-item">
+							<button @tap="saveSubmit" class="saveBnt">保存修改</button>
+						</view>
+					</view>
+				</view>
+
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import app from "../../App.vue"
+	export default {
+		name: 'myDetail',
+		components: {},
+		data() {
+			return {
+				edit: false,
+				items: [{
+					value: 'sex',
+					name: '男'
+				}, {
+					value: 'sex1',
+					name: '女'
+				}],
+				current: null,
+				form: {
+					nickname: '',
+					sex: '',
+					work: '',
+					address: '',
+					sign: '',
+					headimg: 'https://test134.vrapp.chot.cn/mini/picture/headimg_default.png'
+				},
+				demo: {
+					top: 0,
+					height: 0
+				},
+				phone: '',
+				hasImg: '',
+				token: '',
+				save: false
+			}
+		},
+		watch: {
+			form: {
+			         handler(newVal, oldVal){
+										if(newVal == oldVal){
+											this.save = true;
+										} else{
+											this.save = false;
+										}
+			         },
+			         deep: true
+			     }
+		},
+		onLoad() {
+			this.getQuery();
+			this.detailList();
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			if (app.globalData.token == "") {
+				this.token = uni.getStorageSync('token');
+			} else {
+				this.token = app.globalData.token;
+			}
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			async getQuery() {
+				console.log('开始查询');
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'MemberCenter.get_type',
+						token: this.token
+					},
+					header: {
+						'content-type': 'application/form',
+					}
+				});
+				if (res.data.data === 1) {
+					this.edit = false;
+				} else {
+					this.edit = true;
+				}
+			},
+			async detailList() {
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'MemberCenter.member',
+						token: this.token,
+					},
+					header: {
+						'content-type': 'application/form'
+					}
+				});
+				if (res.data.data.headimg) {
+					this.hasImg = res.data.data.headimg;
+				} else {
+					this.hasImg = this.form.headimg;
+				}
+				this.form.hasImg = res.data.data.headimg;
+				this.form.nickName = res.data.data.nickname;
+				this.phone = res.data.data.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+				this.form.sex = res.data.data.sex;
+				this.form.address = res.data.data.home_domicile;
+				this.form.sign = res.data.data.sign;
+				this.form.work = res.data.data.work;
+				this.form.nickname = res.data.data.nickname;
+			},
+			editFn() {
+				this.edit = true;
+				for (let k = 0; k < this.items.length; k++) {
+					if (this.form.sex === this.items[k].name) {
+						this.current = k;
+					} else {
+						this.current = 0
+					}
+				}
+			},
+			radioChange(evt) {
+				for (let i = 0; i < this.items.length; i++) {
+					if (this.items[i].value === evt.target.value) {
+						this.form.sex = this.items[i].name;
+						this.current = i;
+						break;
+					}
+				}
+			},
+			async saveSubmit() {
+				if (this.save) {
+					if (this.form.work == "" || this.form.address == "" || this.form.sex == "" || this.form.sign == "") {
+						uni.showToast({
+							title: '表单项不能为空！',
+							icon: "none"
+						});
+					} else {
+						const res = await this.$myRequset({
+							url: '/api',
+							method: 'POST',
+							data: {
+								operate: 'MemberCenter.info',
+								token: this.token,
+								work: this.form.work,
+								sex: this.form.sex,
+								sign: this.form.sign,
+								nickname: this.form.nickname,
+								home_domicile: this.form.address
+							},
+							header: {
+								'content-type': 'application/form',
+							}
+						});
+						if (res.data.code == 1) {
+							this.edit = false;
+							uni.showToast({
+								title: '修改成功！',
+								icon: "none"
+							})
+						} else {
+							uni.showToast({
+								title: '修改失败！',
+								icon: "none"
+							})
+						}
+					}
+				} else {
+					uni.showToast({
+						title: '表单信息未作修改哦！',
+						icon: "none"
+					})
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.demo {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #63c6e9;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+
+		}
+	}
+
+	/* #ifdef MP-WEIXIN */
+	radio .wx-radio-input.wx-radio-input-checked::before {
+		width: 50rpx;
+		height: 50rpx;
+		border-radius: 50%;
+		line-height: 50rpx;
+		text-align: center;
+		font-size: 30rpx;
+		color: #fff;
+		background: #63cce7;
+		transform: translate(-50%, -50%) scale(1);
+	}
+
+	/* #endif */
+	.infor {
+		position: absolute;
+		top: 100rpx;
+	}
+
+	.uni-input {
+		padding: 1rpx 12rpx;
+	}
+
+	.edit_bar {
+		position: absolute;
+		right: 0;
+		top: 80rpx;
+	}
+
+	.edit_btn {
+		background: #4ed1d6;
+		border-top-left-radius: 30rpx;
+		border-bottom-left-radius: 30rpx;
+		color: #fff;
+		font-size: 27rpx;
+		padding: 5rpx 20rpx;
+	}
+
+	.edit_btn::after {
+		border: none;
+	}
+
+	.label-chorce {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		float: left;
+		padding: 0 10px;
+	}
+
+	.icon_text {
+
+		font-size: 32rpx;
+		color: #707070;
+		flex: 1;
+	}
+
+	.top_title {
+		font-size: 34rpx;
+		color: #fff;
+	}
+
+	.uni-list::before {
+		height: 0 !important;
+	}
+
+	.uni-list::after {
+		height: 0 !important;
+	}
+
+	.uni-list-item {
+		padding: 30rpx 0;
+		border-bottom: 1px solid #f1f1f1;
+		margin-left: 30rpx;
+	}
+
+	.saveBnt {
+		text-align: center;
+		font-size: 34rpx;
+		color: #fff;
+		border-color: transparent;
+		background-color: #30cece;
+	}
+
+	.youhui {
+		background: #fff;
+		border-radius: 20rpx;
+		width: 80%;
+		margin: 0 auto;
+	}
+
+	.count {
+		width: 100%;
+		position: absolute;
+		top: 230rpx;
+		z-index: 99;
+	}
+
+	.right {
+		color: #939393;
+		font-size: 28rpx;
+	}
+
+	.relative {
+		position: relative;
+	}
+
+	.absolute {
+		position: absolute;
+		top: 10rpx;
+	}
+
+	.w140 {
+		width: 140rpx;
+		height: 140rpx;
+		border-radius: 50%;
+	}
+
+	.my_icon {
+		display: flex;
+		align-items: center;
+		margin-right: 20rpx;
+	}
+
+	.myinfo {
+		align-self: center;
+		padding-left: 30rpx;
+	}
+
+	.mytitle {
+		font-size: 39rpx;
+		color: #fff;
+	}
+
+	.myphone {
+		font-size: 29rpx;
+		color: #fff;
+	}
+
+	.w42_icon {
+		width: 42rpx;
+		height: 51rpx;
+	}
+</style>

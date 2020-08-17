@@ -1,0 +1,549 @@
+<template>
+	
+	<view class="container prohibition">
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+		</view>
+		<view>
+			<!-- 是否是分享 -->
+			<view :class="[fromIdShow ? 'show' : 'hide' ]" >
+				<view class="fromShare uni-flex mar-t160">
+					<view class="headImg uni-flex">
+						<view>
+							<image :src='from_headimg' mode=""></image>
+						</view> 
+						<view class="headInfo">
+							<view class="name">{{from_nickname}}</view>
+							<view class="dec">优质的服务，放心的管家</view>
+						</view>
+					</view>
+					<view class="form_close">
+						<button @tap="exitTap">退出</button>
+					</view>
+				</view>
+			</view>
+			<view class="relative">
+				<view> <image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/bannerbg@2x.png"></image> </view>
+				<view class="backTheme">
+					<view class="w155"> Hello,乐管家</view>					
+					<view class="right">
+						 <view class="text-right">更美 更好 更满意</view>		
+					</view>
+				</view>
+				<view class="banner"> <image class="slider" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/banner@2x.png"></image> </view>
+			</view>	
+			
+		    
+			<view class="uni-padding-wrap">
+				<view class="uni-flex uni-row uni-common-mb" style="justify-content: space-between;">
+					<view class="title">健康管理</view>
+						<!-- <view class="more uni-flex"> <image style="align-self: center;" class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/more.png"></image> </view> -->
+				</view>
+		        <view class="uni-flex uni-row">
+					<view class="flex-item" v-for="(item,index) in goods_list" :key="index" @click="onClick(index,item)"> <image class="img100" mode="widthFix" :src="item.logo"></image> </view>
+				</view>
+		    </view>
+			<view>
+				<view class="uni-padding-wrap uni-common-mt">
+					<view class="uni-flex uni-row" style="justify-content:space-between;">
+						<view class="title">最新活动</view>
+						<!-- <view class="more uni-flex"> <image style="align-self: center;" class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/more.png"></image> </view> -->
+					</view>
+					<view class="uni-flex uni-row advert">
+						<view class="advert01" @tap="advert(goods_list_ad[2].id,goods_list_ad[2].type_id)">
+							<view>
+								<image class="w330" :src="goods_list_ad[2].logo"></image>
+							</view>
+							<view>
+								<view class="price"> <text>￥{{goods_list_ad[2].price_selling}}起/</text> <text>月嫂服务</text> </view>
+								<view>
+									<view class="title">{{goods_list_ad[2].title}}</view>
+									<view class="dec">用心呵护</view>
+								</view>
+							</view>
+						</view>
+						<view>
+							<view class="advert02" @tap="advert(goods_list_ad[1].id,goods_list_ad[1].type_id)">
+								<view class="uni-flex">
+									<view class="des">优惠套餐</view>
+									<view> <image class="w7" src="https://test134.vrapp.chot.cn/mini/picture/m_right.png" mode=""></image> </view>
+								</view>
+								<view class="bkfff uni-flex">
+									<view>
+										<view class="title02">{{goods_list_ad[1].title}}</view>
+										<view class="pirce">￥{{goods_list_ad[1].price_selling}}元起</view>
+									</view>
+									<view>
+										<image class="w102":src="goods_list_ad[1].logo"></image>
+									</view>
+								</view>
+							</view>
+							<view class="advert03" @tap="advert(goods_list_ad[0].id,goods_list_ad[0].type_id)">
+								<view class="uni-flex">
+									<view class="des">优惠套餐</view>
+									<view> <image class="w7" src="https://test134.vrapp.chot.cn/mini/picture/m_right.png" mode=""></image> </view>
+								</view>
+								<view class="bkfff uni-flex">
+									<view>
+										<view class="title03">{{goods_list_ad[0].title}}</view>
+										<view class="pirce">￥{{goods_list_ad[0].price_selling}}元起</view>
+									</view>
+									<view>
+										<image class="w167":src="goods_list_ad[0].logo"></image>
+									</view>
+								</view>
+								
+							</view>
+						</view>
+					</view>
+				</view>
+			</view> 
+			<view>
+				<view class="uni-padding-wrap uni-common-mt">
+					<view class="uni-flex uni-row" style="justify-content: space-between;">
+						<view class="title">热门推荐</view>
+						<!-- <view class="more uni-flex"> <image style="align-self: center;" class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/more.png"></image> </view> -->
+					</view>
+					<view class="uni-row">
+						<view v-for="(item,index) in options" :key="index"  class="cp-item" @click="onClickPrd(index,item)">
+							<view>					
+								<image class="img100" :src='item.logo'></image>
+							</view>
+							<view class="uni-flex uni-row" style="justify-content: space-between;">
+								<view>
+									<view class="cp-title">{{item.title}}</view>
+									<view class="price">￥{{item.price_selling}}元起</view>
+								</view>
+								<view class="uni-flex">
+									<button class="ck-btn">立即查看</button>
+								</view>
+							</view>	
+						</view>						
+					</view>
+				</view>
+			</view>
+						
+							
+		</view>
+		
+		
+		
+		
+		
+	</view>
+   
+</template>
+
+<script>     
+	import app from "../../App.vue";
+	export default {
+		name: 'inDex',
+		components: {
+		},
+		created () {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height										
+		},
+		
+		mounted (){
+			
+		},
+		data () {
+			return {
+				token:"",
+				demo: {
+					top: 0,
+					height: 0
+				},
+				fromIdShow:false, //推荐人信息是否显示
+				goods_list:[],    //健康管理
+				goods_list_ad:[],  //最新活动
+				options:[],   //普通商品热门推荐				
+				from_mid:"",     //推广人id
+				from_headimg:"", //推广人头像
+				from_nickname:"" //推广人名字				
+			}
+		},
+		
+		methods: {		
+			onClick(index, item) {
+				var id=item.id;	
+				uni.navigateTo({
+					url: "../../pagesB/makedetail/makedetail?id="+id
+				});				
+			},
+			onClickPrd(index, item) {	
+				var id=item.id;	
+				uni.navigateTo({
+					url: "../detail/detail?id="+id
+				});				
+			},
+			advert(id,type_id){
+				// type_id=2是普通商品
+				if(type_id==1){
+					uni.navigateTo({
+						url: "../../pagesB/makedetail/makedetail?id="+id
+					});	
+				}else if(type_id==2){
+					uni.navigateTo({
+						url: "../detail/detail?id="+id
+					});	
+				}
+				
+					
+			},
+			exitTap(){
+				uni.showModal({
+					title:"确认要退出么？",
+					success: (res) => {
+						if(res.confirm){
+							uni.removeStorageSync('from_mid'); 
+							uni.setStorageSync('from_mid', 0);//初始值
+							uni.reLaunch({
+								url:"../index/index"
+							})
+							
+						}else if(res.cancel){
+							console.log('用户点击取消')
+						}
+					}
+				})	
+				
+			},	
+			async indexList(){	
+				const res = await this.$myRequset({
+				    url: '/api', 
+				    data: {
+				        operate: 'index.index',
+						token:this.token
+				    }
+				});
+				//console.log(res)
+				 this.goods_list = res.data.data.list[2].goods_list;
+				 this.goods_list_ad = res.data.data.list[1].goods_list;
+				 this.options=res.data.data.list[0].goods_list;
+			},
+			async from_infoAPI(){
+				const res = await this.$myRequset({
+				    url: '/api', 
+					method:'POST',
+				    data: {
+				        operate: 'index.get_from_info',
+						from_id:this.from_mid
+				    }
+				});
+				console.log("推广人个人信息")
+				console.log(res)			
+				this.from_headimg = res.data.data.headimg
+				this.from_nickname = res.data.data.nickname
+			},
+			onShow(){				
+				console.log("options3")
+				this.from_mid = uni.getStorageSync('from_mid');	
+				console.log(this.from_mid)		
+				this.indexList();
+			},
+			onLoad(options) {
+				console.log("options1")
+				var scene = decodeURIComponent(options.scene)
+				 console.log("scene:"+scene)
+				 var scene1 = decodeURIComponent(options.from_mid)
+				  console.log("scene:"+scene1)
+				 var scene3 = decodeURIComponent(options.scene.from_mid)
+				  console.log("scene:"+scene3) 
+				this.from_mid = options.from_mid	
+				let from_mid = options.from_mid
+				if(from_mid !==undefined&&from_mid !==''){
+					uni.clearStorage();
+					uni.setStorageSync('from_mid',from_mid)	
+					console.log("第一遍"+ this.from_mid)
+				}
+		
+				
+				uni.showLoading({
+					title: '加载中...'
+				});
+				if(this.from_mid!==undefined&&this.from_mid!==''){
+					this.from_infoAPI();
+					this.fromIdShow=true
+					
+				}				
+			   if(app.globalData.token==undefined){
+					this.token = uni.getStorageSync('token');
+			   }else{
+					let _this = this;  
+					_this.token = app.globalData.token;		
+					_this.indexList();								
+					 uni.hideLoading();							
+			   }					   
+
+			}
+
+		}
+		//一级
+		
+		
+	}
+	
+</script>
+
+<style lang="scss">
+	/* 授权 */
+	.demo{
+	    position: relative;
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
+	    background: linear-gradient(to right, #63c8e8 , #64d3e6);
+	    font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+	    .left{
+	        float: left;
+	        position: absolute;
+	        width: max-content;
+	        height: max-content;
+	        top: 0;
+	        bottom: 0;
+	        left: 20rpx;
+	        margin: auto;
+			
+	    }
+	}
+	
+	.container {
+		font-size: 28rpx;
+		line-height: 24rpx;
+		background: #f8f9f9;
+	}
+	.headImg{
+		padding-left: 20rpx;
+	}
+	.headImg image{
+		width: 100rpx;
+		height: 100rpx;
+		border-radius: 50%;
+	}
+	.headInfo{
+		padding-left: 20rpx;
+		.name{
+			font-weight: bold;			
+		}
+		.dec{
+			font-size: 24rpx;
+			color: #737373;
+		}
+	}
+	.fromShare{
+		position: relative;
+	}
+	.form_close{
+		position: absolute;
+		top: 40rpx;
+		right: 10rpx;
+	}
+	.form_close button{
+		width: 100rpx;
+		height: 60rpx;
+		line-height: 60rpx;
+		padding: 3rpx 12rpx;
+		background: $uni-color-theme;
+		color: #fff;
+		border:none;
+		font-size: 24rpx;
+		
+	}
+	.mar-t160{
+		margin-top: 140rpx;
+		padding-top:20rpx ;
+	}
+	.w330{
+		width: 330rpx;
+		height: 330rpx;
+	}
+	.advert{
+		padding-top: 5rpx;
+		background: #fff;
+	}
+	.advert01{
+		margin-left: 10rpx;
+		position: relative;
+		.price{
+			background: #ff914a;
+			position: absolute;
+			left: 0;
+			top: 0;
+			color: #fff;
+			font-size: 24rpx;
+			border-top-left-radius: 10rpx;
+			border-bottom-right-radius: 10rpx;
+			padding: 10rpx;
+		}
+		.title{
+			font-size: 28rpx;
+			color: #fff;
+			position: absolute;
+			bottom: 60rpx;
+			padding-left: 30rpx;
+		}
+		.dec{
+			font-size: 26rpx;
+			color: #fff;
+			position: absolute;
+			bottom: 20rpx;
+			padding-left: 30rpx;
+		}
+	}
+	.advert02{
+		width: 330rpx;
+		height: 160rpx;
+		margin-left: 10rpx;
+		background: #00d6c0;
+		border-top-right-radius: 10rpx;
+		border-bottom-right-radius: 10rpx;
+		position: relative;
+		.w102{
+			width: 102rpx;
+			height: 97rpx;
+			position: absolute;
+			right: 0;
+		}
+		.des{
+			font-size: 28rpx;
+			color: #fff;
+			margin-left: 15rpx;
+		}
+		.title02{
+			color: #1d1d1d;
+			padding-left: 15rpx;
+		}
+		.pirce{
+			color: #ff2b16;
+			padding-left: 15rpx;
+			font-size: 24rpx;
+		}
+		.w7{
+			width: 7rpx;
+			height: 13rpx;
+			margin-left: 10rpx;	
+		}
+		.bkfff{
+			width:292rpx;
+			height:98rpx;
+			background:#fff;
+			border-radius:10rpx;
+			margin-left: 15rpx;
+			position: relative;
+		}
+	}
+	.advert03{
+		width: 330rpx;
+		height: 160rpx;
+		margin-left: 10rpx;
+		background: #ffc275;
+		border-top-right-radius: 10rpx;
+		border-bottom-right-radius: 10rpx;
+		margin-top: 10rpx;
+		position: relative;
+		.w167{
+			width: 130rpx;
+			height: 98rpx;
+			position: absolute;
+			right: 0;
+		}
+		.des{
+			font-size: 28rpx;
+			color: #fff;
+			margin-left: 15rpx;
+		}
+		.title03{
+			color: #1d1d1d;
+			padding-left: 15rpx;
+		}
+		.pirce{
+			color: #ff2b16;
+			padding-left: 15rpx;
+			font-size: 24rpx;
+		}
+		.w7{
+			width: 7rpx;
+			height: 13rpx;
+			margin-left: 10rpx;	
+		}
+		.bkfff{
+			width:292rpx;
+			height:98rpx;
+			background:#fff;
+			border-radius:10rpx;
+			margin-left: 15rpx;
+			position: relative;
+		}
+	}
+	.relative{
+		position: relative;
+	}
+	.backTheme{
+		position: absolute;
+		top: 140rpx;
+		width: 100%;
+	}
+	.banner{
+		width: 100%;
+		margin-top: -117rpx;
+		text-align: center;
+		.slider{
+			width: 96%;
+			margin: 0 auto;
+		}
+	}
+	.w155{
+		width: 155rpx;
+		font-size: 48rpx;
+		padding: 20rpx;
+		color: #fff;
+		padding-bottom: 0;
+	}
+	.text-right{
+		width: 300rpx;
+		color: #fff;
+		font-size: 36rpx;
+		position: absolute;
+		top: 130rpx;
+		right: 40rpx;
+		text-align: right;
+	}
+	
+	.cp-item{
+		width: 48%;
+		float: left;
+		margin-left: 10rpx;
+		margin-bottom: 20rpx;
+	}
+	.cp-title{
+		font-size: 28rpx;
+		font-weight: bold;
+	}
+	.cp-item image{
+		height: 245rpx;
+	}
+	.more{
+		width: 153rpx;
+	}
+	.ck-btn{
+		font-size: 24rpx;
+		align-self: center;
+		padding: 3rpx 20rpx;
+		margin-right: 30rpx;
+		background: #ff3622;
+		color: #fff;
+		border-radius: 30rpx;
+		box-shadow: 0rpx 3rpx 6rpx 3rpx #ccc;
+	}
+	.price{
+		color: #ff3622;
+		font-weight: bold;
+	}
+</style>

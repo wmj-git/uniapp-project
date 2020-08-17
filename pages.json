@@ -1,0 +1,269 @@
+{
+	"pages": [{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": true
+			}
+		}, {
+			"path": "pages/detail/detail",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		}, {
+			"path": "pages/mydetail/mydetail",
+			"style": {
+				"navigationBarTitleText": "我的资料"
+			}
+		}, {
+			"path": "pages/worker/worker",
+			"style": {
+				"navigationBarTitleText": "预约订单"
+			}
+		}, {
+			"path": "pages/workerDetail/workerDetail",
+			"style": {
+				"navigationBarTitleText": "护工详情"
+			}
+		},
+		{
+			"path": "pages/nurseList/nurseList",
+			"style": {
+				"navigationBarTitleText": "被护理人资料"
+			}
+		},
+		{
+			"path": "pages/workerAllDetail/workerAllDetail",
+			"style": {
+				"navigationBarTitleText": "预约订单详情"
+			}
+		},
+		{
+			"path": "pages/nurseDetail/nurseDetail",
+			"style": {
+				"navigationBarTitleText": "被护理人详情"
+			}
+		},
+		{
+			"path": "pages/workerReplace/workerReplace",
+			"style": {
+				"navigationBarTitleText": "更换护工"
+			}
+		},
+		{
+			"path": "pages/workerChoose/workerChoose",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/orderDetail/orderDetail",
+			"style": {
+				"navigationBarTitleText": "订单详情"
+			}
+		},
+		{
+			"path": "pages/nurse/nurse",
+			"style": {
+				"navigationBarTitleText": "编辑被护理人员"
+			}
+		},
+		{
+			"path": "pages/serverItem/serverItem",
+			"style": {
+				"navigationBarTitleText": "护工服务项目"
+			}
+		},
+		{
+			"path": "pages/workerall/workerall",
+			"style": {
+				"navigationBarTitleText": "我的护工"
+			}
+		},
+		{
+			"path": "pages/specsDetail/specsDetail",
+			"style": {
+				"navigationBarTitleText": "护工详情"
+			}
+		},
+		{
+			"path": "pages/makeNurseList/makeNurseList",
+			"style": {
+				"navigationBarTitleText": "护工详情"
+			}
+		},
+		{
+			"path": "pages/serverItemList/serverItemList",
+			"style": {
+				"navigationBarTitleText": "护工服务项目"
+			}
+		},
+		{
+			"path": "pages/newDetail/newDetail",
+			"style": {
+				"navigationBarTitleText": "健康百科详情"
+			}
+		},
+		{
+			"path": "pages/historyServer/historyServer",
+			"style": {}
+		}
+
+	],
+	"subPackages": [{
+		"root": "pagesA",
+		"pages": [{
+
+				"path": "news/news",
+				"style": {
+					"navigationBarTitleText": "健康百科"
+				}
+			}, {
+				"path": "shareAppMesg/shareAppMesg"
+			}, {
+				"path": "useragree/useragree"
+			},
+			{
+				"path": "agree/agree"
+			},
+			{
+				"path": "myAddress/myAddress",
+				"style": {
+					"navigationBarTitleText": "我的地址"
+				}
+			},
+			{
+				"path": "addressList/addressList",
+				"style": {
+					"navigationBarTitleText": "管理地址"
+				}
+			}
+		]
+	}, {
+		"root": "pagesB",
+		"pages": [{
+				"path": "order/order",
+				"style": {
+					"navigationBarTitleText": "订单"
+				}
+			},
+			{
+				"path": "specs/specs",
+				"style": {
+					"navigationBarTitleText": ""
+				}
+			},
+			{
+				"path": "makedetail/makedetail",
+				"style": {
+					"navigationBarTitleText": "详情"
+				}
+			},
+			{
+				"path": "distribution/distribution",
+				"style": {
+					"navigationBarTitleText": ""
+				}
+			},
+			{
+				"path": "withdrawal/withdrawal",
+				"style": {
+					"navigationBarTitleText": ""
+				}
+			},
+			{
+				"path": "renewal_order/renewal_order",
+				"style": {
+					"navigationBarTitleText": ""
+				}
+			}
+		]
+	}],
+	"preloadRule": {
+		"pagesA/shareAppMesg/shareAppMesg": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesA/news/news": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesA/useragree/useragree": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesA/agree/agree": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesA/myAddress/myAddress": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesA/addressList/addressList": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesB/order/order": {
+			"network": "all",
+			"packages": ["pagesA"]
+		},
+		"pagesB/specs/specs": {
+			"network": "all",
+			"packages": ["pagesA"]
+		},
+		"pagesB/makedetail/makedetail": {
+			"network": "all",
+			"packages": ["pagesA"]
+		},
+		"pagesB/distribution/distribution": {
+			"network": "all",
+			"packages": ["pagesA"]
+		},
+		"pagesB/withdrawal/withdrawal": {
+			"network": "all",
+			"packages": ["pagesA"]
+		},
+		"pagesB/renewal_order/renewal_order": {
+			"network": "all",
+			"packages": ["pagesA"]
+		}
+
+	},
+
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#63c6e9",
+		"backgroundColor": "#FFFFFF"
+	},
+	"tabBar": {
+		"color": "#a7adb5",
+		"selectedColor": "#30cece",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [{
+			"pagePath": "pages/index/index",
+			"iconPath": "static/images/index.png",
+			"selectedIconPath": "static/images/index_fill.png",
+			"text": "首页"
+		}, {
+			"pagePath": "pages/worker/worker",
+			"iconPath": "static/images/order.png",
+			"selectedIconPath": "static/images/order_fill.png",
+			"text": "订单"
+		}, {
+			"pagePath": "pages/my/my",
+			"iconPath": "static/images/my.png",
+			"selectedIconPath": "static/images/my_fill.png",
+			"text": "我的"
+		}]
+	}
+}

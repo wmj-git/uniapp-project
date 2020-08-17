@@ -1,0 +1,123 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/my/my",
+    "pages/detail/detail",
+    "pages/mydetail/mydetail",
+    "pages/worker/worker",
+    "pages/workerDetail/workerDetail",
+    "pages/nurseList/nurseList",
+    "pages/workerAllDetail/workerAllDetail",
+    "pages/nurseDetail/nurseDetail",
+    "pages/workerReplace/workerReplace",
+    "pages/workerChoose/workerChoose",
+    "pages/orderDetail/orderDetail",
+    "pages/nurse/nurse",
+    "pages/serverItem/serverItem",
+    "pages/workerall/workerall",
+    "pages/myAddress/myAddress",
+    "pages/addressList/addressList",
+    "pages/specsDetail/specsDetail",
+    "pages/makeNurseList/makeNurseList",
+    "pages/serverItemList/serverItemList",
+    "pages/newDetail/newDetail",
+    "pages/historyServer/historyServer"
+  ],
+  "subPackages": [
+    {
+      "root": "pagesA",
+      "pages": [
+        "news/news",
+        "shareAppMesg/shareAppMesg",
+        "useragree/useragree",
+        "agree/agree"
+      ]
+    },
+    {
+      "root": "pagesB",
+      "pages": [
+        "order/order",
+        "specs/specs",
+        "makedetail/makedetail"
+      ]
+    }
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#63c6e9",
+    "backgroundColor": "#FFFFFF"
+  },
+  "tabBar": {
+    "color": "#a7adb5",
+    "selectedColor": "#30cece",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/images/index.png",
+        "selectedIconPath": "static/images/index_fill.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/worker/worker",
+        "iconPath": "static/images/order.png",
+        "selectedIconPath": "static/images/order_fill.png",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "iconPath": "static/images/my.png",
+        "selectedIconPath": "static/images/my_fill.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "preloadRule": {
+    "pagesA/shareAppMesg/shareAppMesg": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesA/news/news": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesA/useragree/useragree": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesA/agree/agree": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesB/order/order": {
+      "network": "all",
+      "packages": [
+        "pagesA"
+      ]
+    },
+    "pagesB/specs/specs": {
+      "network": "all",
+      "packages": [
+        "pagesA"
+      ]
+    },
+    "pagesB/makedetail/makedetail": {
+      "network": "all",
+      "packages": [
+        "pagesA"
+      ]
+    }
+  },
+  "usingComponents": {}
+}

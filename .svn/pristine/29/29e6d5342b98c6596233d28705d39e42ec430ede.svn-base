@@ -1,0 +1,703 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+		</view>
+		<view class="">
+
+			<view>
+				<image class="img100" mode="widthFix" src="https://test134.vrapp.chot.cn/mini/picture/my_bg.png"></image>
+			</view>
+			<view class="infor">
+				<view class="uni-flex  uni-padding-wrap" style="padding-top: 80rpx;">
+					<view class="header_default" :class="[isLogin ? 'show' : 'hide' ]">
+						<image class="w110" :src="hasImg"></image>
+					</view>
+					<view :class="[isLoginShow ? 'show' : 'hide' ]">
+						<image class="w130" :src="hasImg"></image>
+					</view>
+					<view class="uni-flex">
+						<view class="myinfo" :class="[isLogin ? 'show' : 'hide' ]">
+							<button class='login_btn' open-type="getUserInfo" @getuserinfo="getUserinfo" withCredentials="true">点击登录</button>
+						</view>
+						<view class="myinfo" :class="[isLoginShow ? 'show' : 'hide' ]">
+							<view class="mytitle">{{ nickName }}</view>
+							<view class="myphone">{{ phone }}</view>
+						</view>
+					</view>
+				</view>
+				<!-- //申请提现 -->
+				<view class="appl_pay" @tap="distribuTap" :class="[extendShow ? 'show' : 'hide' ]">
+					申请提现				
+				</view>
+				<view class="uni-padding-wrap pd-t50">
+					<view class="uni-flex  youhui">
+						<view class="text" @tap="appiontOrderTap">
+							<span>{{ amount.appiont_order_count }}</span>
+							<view class="wz">预约订单</view>
+						</view>
+						<view class="text">
+							<span>{{ amount.order_count }}</span>
+							<view class="wz">订单</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
+
+		</view>
+
+		<view class="uni-list mart120">
+			<view class="uni-list-item" @tap="news">
+				<view class="uni-padding-right uni-flex">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_icon01.png"></image>
+					</view>
+					<view class="icon_text">
+						健康百科
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item" @tap="openinfo">
+				<view class="uni-padding-right uni-flex">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_icon02.png"></image>
+					</view>
+					<view class="icon_text">
+						我的资料
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="uni-list mart20">
+			<view class="uni-list-item">
+				<view class="uni-padding-right uni-flex" @tap="worker">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_icon04.png"></image>
+					</view>
+					<view class="icon_text">
+						我的护工
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item" :class="[workerRShow ? 'show' : 'hide' ]">
+				<view class="uni-padding-right uni-flex" @tap="workerReplaceTap">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/nurse_management.png"></image>
+					</view>
+					<view class="icon_text">
+						更换护工
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item">
+				<view class="uni-padding-right uni-flex" @tap="nurseList">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/nurse_list.png"></image>
+					</view>
+					<view class="icon_text">
+						我的护理人资料
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item" :class="[serverLShow ? 'show' : 'hide' ]">
+				<view class="uni-padding-right uni-flex" @tap="serverItemList">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_fuwuguanli.png"></image>
+					</view>
+					<view class="icon_text">
+						服务管理
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item">
+				<view class="uni-padding-right uni-flex" @tap="myAddressTap">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/address_02.png"></image>
+					</view>
+					<view class="icon_text">
+						收货地址
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<!-- 如果是分销员 -->
+			<view class="uni-list-item" :class="[extendShow ? 'show' : 'hide' ]">
+				<view class="uni-padding-right uni-flex" @tap="shareAppMesgTap">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_huliren.png"></image>
+					</view>
+					<view class="icon_text">
+						推广本店
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+			<view class="uni-list-item">
+				<view class="uni-padding-right uni-flex" @tap="agree">
+					<view class="my_icon">
+						<image class="w42_icon" src="https://test134.vrapp.chot.cn/mini/picture/my_icon05.png"></image>
+					</view>
+					<view class="icon_text">
+						相关协议
+					</view>
+					<view class="right">
+						<image class="w14_right" src="https://test134.vrapp.chot.cn/mini/picture/right.png"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+
+		<view class="uni-padding-wrap center">			
+			<image class="img100" mode="widthFix" :src="advertPic"></image>
+		</view>
+
+
+	</view>
+</template>
+
+<script>
+	import app from "../../App.vue"
+	export default {
+		name: 'my',
+		components: {
+
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+
+		},
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},
+				
+				token: '',
+				nickName:"",
+				phone: '',
+				avatarUrl:"",
+				advertPic:'', //广告图
+				workerRShow: false, //更换护工	
+				serverLShow:false,  //服务管理
+				extendShow:false, //推广本店
+				hasImg: '',				
+				amount: {},
+				isLogin: false,
+				isLoginShow:true
+
+			}
+		},
+		onPullDownRefresh: function() {
+				this.token = uni.getStorageSync('token');
+				this.infoList();
+				this.orderNum();
+		},
+		onLoad() {
+			
+			var _this=this;
+			uni.checkSession({
+				success() {
+					console.log('ok');
+					_this.isLogin = false;
+					_this.isLoginShow = true;
+					app.wxLogin().then(res => {									
+						_this.token = app.globalData.token;
+						console.log(_this.token)
+						_this.infoList();
+						_this.orderNum();
+						_this.arrTypeAPI();											
+					});
+																									
+				},
+				fail() {
+					// session_key 已经失效，需要重新执行登录流程
+					//wx.login() // 重新登录
+					console.log('expire');	
+					//app.wxLogin().then(res => {
+						//_this.token = app.globalData.token;
+						_this.isLogin =true;
+						_this.isLoginShow = false;
+					//})
+					
+					
+					
+				}
+			})
+			//调取
+			this.advertpicAPI();
+			
+		},
+		methods: {
+			//角色判断
+			arrTypeAPI(){
+				uni.request({
+					url: "https://test134.vrapp.chot.cn/api",
+					method: "POST",
+					data: {
+						operate: "MemberCenter.member_bing",
+						token: this.token
+					},
+					success: (res) => {
+						console.log("角色")	
+						console.log(res)									
+						let arrType = res.data.data.list;
+						
+						if(res.data.code !==1){
+							if(res.data.code==4002){
+								console.log(res.data.code)								
+							}
+							var info = res.data.info
+							return uni.showToast({
+								title:info,
+								icon: "none"
+							})
+							
+						}else{
+							if(arrType!==[]){
+								arrType.forEach((item, index) => {
+									if(item.type==1){
+										this.workerRShow = true;
+										return false;
+									}
+									if(item.type==2){
+										this.serverLShow = true;
+										return false;
+									}
+									if(item.type==3){
+										this.extendShow = true;
+										return false;
+									}
+									
+									
+									
+								})
+							
+							
+							}else{
+								
+								let arrMember = res.data.data.member;
+								arrMember.forEach((item, index) => {	
+									if(item.role==1||item.role==2||item.role==3){
+										this.workerRShow = false;	
+										return false;
+									}
+									if(item.role==2){
+										this.serverLShow = true;
+										return false;
+									}
+									if(item.role==3){
+										this.extendShow = true;
+										return false;
+									}
+									
+								})
+							}	
+							
+						}
+						
+				
+					}
+				})
+			},
+			// 获取微信用户信息
+			getUserinfo: function(){				
+				 var that=this;
+				 uni.getUserInfo({
+					success: function(res) {
+						var userInfo = res.userInfo
+						that.nickName = userInfo.nickName    //昵称
+						that.avatarUrl = userInfo.avatarUrl //头像
+						var gender = userInfo.gender //性别 0：未知、1：男、2：女
+						var province = userInfo.province
+						var city = userInfo.city
+						var country = userInfo.country														
+						that.isLogin = false;
+						that.isLoginShow = true;
+						app.wxLogin().then(res => {
+							that.token =  app.globalData.token;
+							console.log(that.token)
+							that.infoList();
+							that.orderNum();
+							that.arrTypeAPI();	
+							uni.request({
+								url: 'https://test134.vrapp.chot.cn/api', //服务器端地址
+								data: {
+									operate: "MemberCenter.update",
+									token: that.token,
+									nickname: that.nickName,
+									headimg: that.avatarUrl
+								},
+								method: 'POST',
+								header: {
+									'content-type': 'application/json'
+								},
+								success: (res) => {
+									console.log("向后台更新信息");
+									console.log(res);
+								},
+							});											
+																	
+						});
+	                   
+						
+					},
+					fail:res=>{
+						uni.showToast({ 
+							 title: '获取微信信息失败', 
+							 duration: 2000 ,
+							 icon:"none"
+						 })						  
+					}
+				 })
+			},
+			
+			distribuTap(){
+				uni.navigateTo({
+					url: "../../pagesB/distribution/distribution"
+				});
+			},
+			openinfo(e) {
+				uni.navigateTo({
+					url: "../mydetail/mydetail"
+				});
+			},
+			news(e) {
+				uni.navigateTo({
+					url: "../../pagesA/news/news"
+				});
+			},
+			appiontOrderTap(e) {
+				uni.switchTab({
+					url: "../worker/worker"
+				})
+			},
+			agree(e) {
+				uni.navigateTo({
+					url: "../../pagesA/agree/agree"
+				});
+			},
+			nurseList() {
+				uni.navigateTo({
+					url: "../nurseList/nurseList"
+				});
+			},
+			worker() {
+				uni.navigateTo({
+					url: "../workerall/workerall"
+				});
+			},
+			myAddressTap() {
+				uni.navigateTo({
+					url: "../../pagesA/addressList/addressList"
+				});
+			},
+			serverItemList() {
+				uni.navigateTo({
+					url: "../serverItemList/serverItemList"
+				});
+			},
+			shareAppMesgTap() {
+				uni.navigateTo({
+					url: "../../pagesA/shareAppMesg/shareAppMesg"
+				});
+			},
+			workerReplaceTap() {
+				uni.navigateTo({
+					url: "../workerReplace/workerReplace"
+				});
+			},
+			async infoList() {
+				console.log(this.token)
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'MemberCenter.member',
+						token: this.token,
+					},
+					header: {
+						'content-type': 'application/form'
+					}
+				});
+				let infoArr = res.data.data;
+				this.info = infoArr;
+				this.phone = infoArr.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+				if (infoArr.nickname !== "") {
+					//this.isLogin = false;
+					//this.isLoginShow = true;
+					this.hasImg = infoArr.headimg;
+					this.nickName = infoArr.nickname;
+				} else {
+					//this.isLogin = true;	
+					//this.isLoginShow = false;
+					this.hasImg = "https://test134.vrapp.chot.cn/mini/picture/headDefaultImg.png";
+					
+					
+					
+					
+				}
+			},
+			async orderNum() {
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'Member.AppointOrder.get_count',
+						token: this.token
+					},
+					header: {
+						'content-type': 'application/form'
+					}
+				});
+				console.log(res);
+				this.amount = res.data.data;
+
+			},
+			//获取广告图
+			async advertpicAPI() {
+				const res = await this.$myRequset({
+					url: '/api',
+					method: 'POST',
+					data: {
+						operate: 'Other.index',
+						en_name: 'my_banner',
+						data_type:'image'
+					}
+				});
+				console.log(res);
+				this.advertPic = res.data.data.value
+			
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	.appl_pay{
+		position:absolute;
+		right: 0;
+		background: #4ed1d6;
+		font-size: 26rpx;
+		color: #fff;
+		height: 60rpx;
+		line-height: 60rpx;
+		padding: 0 20rpx;
+		border-top-left-radius: 30rpx;
+		border-bottom-left-radius: 30rpx;
+		top: 140rpx;
+	}
+	.center {
+		padding: 0;
+	}
+
+	.show {
+		display: block !important;
+	}
+
+	.hide {
+		display: none !important;
+	}
+
+	.demo {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #63c6e9;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+	}
+
+	.infor {
+		position: absolute;
+		top: 100rpx;
+	}
+
+	.pd-t88 {
+		padding-top: 88rpx;
+	}
+
+	.pd-t50 {
+		padding-top: 50rpx;
+	}
+
+	.uni-padding-right {
+		padding-right: 30rpx;
+	}
+
+	.right {
+		display: flex;
+		align-items: center;
+	}
+
+	.my_icon {
+		display: flex;
+		align-items: center;
+		margin-right: 20rpx;
+	}
+
+	.mart120 {
+		margin-top: 130rpx;
+	}
+
+	.count {
+		position: absolute;
+		top: 230rpx;
+		z-index: 99;
+	}
+
+	.youhui {
+		background: #fff;
+		padding: 45rpx;
+		border-radius: 20rpx;
+		text-align: center;
+	}
+
+	.youhui .text {
+		width: 50%;
+		text-align: center;
+	}
+
+	.youhui .text span {
+		font-size: 40rpx;
+		color: #333333;
+		font-weight: bold;
+	}
+
+	.wz {
+		color: #bebebe;
+		font-size: 32rpx;
+	}
+
+	.myinfo {
+		align-self: center;
+		padding-left: 30rpx;
+	}
+
+	.mytitle {
+		font-size: 39rpx;
+		color: #fff;
+	}
+
+	.posl_right {
+		position: absolute;
+		right: 0;
+		top: 80rpx;
+
+	}
+
+	.myphone {
+		font-size: 29rpx;
+		color: #fff;
+	}
+
+	.relative {
+		position: relative;
+	}
+
+	.absolute {
+		position: absolute;
+		top: 10rpx;
+	}
+
+	.w130 {
+		width: 130rpx;
+		height: 130rpx;
+		border-radius: 50%;
+	}
+	.w110{
+		width: 110rpx;
+		height: 100rpx;
+		display: block;
+		margin: 0 auto;
+		padding-top: 31rpx;
+	}
+	.icon_text {
+		font-size: 32rpx;
+		color: #707070;
+		flex: 1;
+	}
+
+	.w42_icon {
+		width: 42rpx;
+		height: 51rpx;
+	}
+
+	.w14_right {
+		width: 14rpx;
+		height: 23rpx;
+	}
+
+	.jifen {
+		background: #4ed1d6;
+		border-top-left-radius: 30rpx;
+		border-bottom-left-radius: 30rpx;
+		color: #fff;
+		font-size: 27rpx;
+		padding: 10rpx;
+
+	}
+
+	.uni-list::before {
+		height: 0 !important;
+	}
+
+	.uni-list::after {
+		height: 0 !important;
+	}
+
+	.uni-list-item {
+		padding: 30rpx 0;
+		border-bottom: 1px solid #f1f1f1;
+		margin-left: 30rpx;
+	}
+	.header_default{
+		background: rgba(255,255,255,0.5);
+		border-radius: 50%;
+		width: 130rpx;
+		height: 130rpx;
+		overflow: hidden;
+	}
+	.login_btn {
+		width:180rpx;
+		padding: 4rpx 20rpx;
+		font-size: 28rpx;
+		background: transparent;
+		color: #fff;
+		border:1px solid #eeeeee;
+		border-radius: 40rpx;
+		line-height: 50rpx;
+		&::after {
+			border: none;
+		}
+	}
+</style>

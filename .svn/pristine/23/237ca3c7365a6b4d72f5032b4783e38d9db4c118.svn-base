@@ -1,0 +1,473 @@
+<template>
+	<view class="container prohibition">
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="top_title">本店佣金统计</view>
+		</view>
+		<view class="content">
+			<view class="operate_box" :style="'padding-top:'+ padding_top + 'px'">
+				<button class="operate_btn" v-for="(item,index) in btn_Arr" :key="index" :class="{'active':add_class==index}" @tap="changeFn(index)">{{item.title}}</button>
+			</view>
+		</view>
+		<view v-if="add_class == 0" class="detail_subsidiary">
+			<view class="list_box" v-for="(list,index) in selList" :key="index">
+				<view class="list_head">
+					<image :src="list.headimg" mode="widthFix"></image>
+				</view>
+				<view class="detail_box">
+					<view class="detail_item">
+						<text class="item_first">收益：￥<text class="high_text">{{ list.get_money }}</text>元</text>
+						<text class="item_title"><text class="color_text">{{ list.nickname }}</text></text>
+					</view>
+					<view class="detail_item">
+						<text class="item_first">{{ list.create_time }}</text>
+						<text class="item_title">实际付款：￥<text class="real_price">{{ list.total_price }}</text>元</text>
+					</view>
+				</view>
+			</view>
+			<view :class="[isEmpty_list ? 'show' : 'hide' ]" class="order_img">
+				<image src="https://test134.vrapp.chot.cn/mini/picture/withdrawal.png" mode="widthFix"></image>
+			</view>
+		</view>
+		<view v-else-if="add_class == 1" class="content_box">
+			<view class="record_title">
+				<text>时间</text>
+				<text>金额(元)</text>
+				<text>状态</text>
+			</view>
+			<view v-for="(item,index1) in recordList" class="record_list list_item" :key="index1">
+				<text class="item date">{{item.apply_time}}</text>
+				<text class="item price">{{item.apply_money}}</text>
+				<text class="item status">{{item.check_status}}</text>
+			</view>
+			<view :class="[isEmpty ? 'show' : 'hide' ]" class="order_img">
+				<image src="https://test134.vrapp.chot.cn/mini/picture/withdrawal_list.png" mode="widthFix"></image>
+			</view>
+		</view>
+		<uni-load-more :status="status" :content-text="contentText" />
+	</view>
+</template>
+
+<script>
+	import uniLoadMore from '../../components/uni-load-more/uni-load-more.vue';
+	import Util from '../../common/util.js'
+	export default {
+		name: "withdrawal",
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},
+				add_class: 0,
+				btn_Arr: [{
+						title: "佣金明细"
+					},
+					{
+						title: "提现记录"
+					}
+				],
+				pageSize: 10,
+				padding_top: 0,
+				isEmpty_list: false,
+				isEmpty: false,
+				status: 'loading',
+				recordList: [{
+					date: "2020-01-05 15:30",
+					price: "15",
+					status: "提现"
+				}], // 提现记录
+				selList: [], // 佣金明细
+				contentText: {
+					contentdown: '上拉加载更多',
+					contentrefresh: '加载中.....',
+					contentnomore: '没有更多数据啦'
+				},
+				page: 1,
+				token: ""
+			}
+		},
+		onLoad() {
+			this.getEarnings();
+			let mobile_phone = uni.getSystemInfoSync(); // 手机信息
+			if (mobile_phone.windowWidth <= 320) { // iphone5
+				this.padding_top = this.demo.height + this.demo.top;
+			} else if (mobile_phone.windowHeight >= 896) { // iphone XR
+				this.padding_top = this.demo.height + this.demo.top;
+			} else {
+				this.padding_top = this.demo.height + this.demo.top;
+			}
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			this.token = uni.getStorageSync('token');
+		},
+		onReachBottom(e) {
+			this.page++;
+			if (this.add_class == 0) {
+				this.getEarningsMore();
+			} else {
+				this.getListMore();
+			}
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			// 获取收益列表
+			async getEarnings() {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Withdraw.distribute_order_list",
+						token: this.token,
+						page: this.page
+					}
+				});
+				this.selList = res.data.data.list;
+
+				this.selList.forEach((val) => {
+					val.create_time = Util.timestampToTime(val.create_time);
+				});
+				let count = res.data.data.count;
+				if (count == 0) {
+					this.isEmpty_list = true;
+					this.status = "nomore";
+					this.contentText.contentnomore = "您暂时没有收益记录哦！"
+				} else {
+					this.isEmpty_list = false;
+					this.status = "more";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+				let pages = Math.ceil(count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+			},
+			async getEarningsMore() {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Withdraw.distribute_order_list",
+						token: this.token,
+						page: this.page
+					}
+				});
+				for (var i = 0; i < res.data.data.list.length; i++) {
+					let item = res.data.data.list[i];
+					this.selList.push(item); // 加载的数据追加在上一页后面				
+					// item.create_time = this.happenTimeFun(item.create_time * 1000);
+					item.create_time = Util.timestampToTime(item.create_time);
+				}
+				let count = res.data.data.count;
+				if (count == 0) {
+					this.isEmpty_list = true;
+					this.status = "nomore";
+					this.contentText.contentnomore = "您暂时没有收益记录哦！"
+				} else {
+					this.isEmpty_list = false;
+					this.status = "nomore";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+				let pages = Math.ceil(count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+			},
+			async changeFn(index) {
+				this.add_class = index;
+				this.page = 1;
+				if (this.add_class == 0) {
+					this.getEarnings();
+				} else {
+					this.getList();
+				}
+			},
+			async getList() {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Withdraw.withdraw_list",
+						token: this.token,
+						page: this.page
+					}
+				});
+				this.recordList = res.data.data.list;
+				this.recordList.forEach((val) => {
+					val.apply_time = Util.timestampToTime(val.apply_time);
+					if (val.check_status == 1) {
+						val.check_status = "通过"
+					} else if (val.check_status == 2) {
+						val.check_status = "待审"
+					} else if (val.check_status == 3) {
+						val.check_status = "拒绝"
+					}
+				});
+				let count = res.data.data.count;
+				if (count == 0) {
+					this.isEmpty = true;
+					this.status = "nomore";
+					this.contentText.contentnomore = "暂时没有提现记录"
+				} else {
+					this.isEmpty = false;
+					this.status = "more";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+				let pages = Math.ceil(res.data.data.list.count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+			},
+			async getListMore() {
+				const res = await this.$myRequset({
+					url: "/api",
+					method: "POST",
+					data: {
+						operate: "Withdraw.withdraw_list",
+						token: this.token,
+						page: this.page
+					}
+				});
+				for (var i = 0; i < res.data.data.list.length; i++) {
+					let item = res.data.data.list[i];
+					this.recordList.push(item); // 加载的数据追加在上一页后面				
+					item.apply_time = Util.timestampToTime(item.apply_time);
+				}
+				this.recordList.forEach((val) => {
+					if (val.check_status == 1) {
+						val.check_status = "通过"
+					} else if (val.check_status == 2) {
+						val.check_status = "待审"
+					} else if (val.check_status == 3) {
+						val.check_status = "拒绝"
+					}
+				});
+				let count = res.data.data.count;
+				let pages = Math.ceil(count / this.pageSize);
+				if (this.page == pages) {
+					this.status = "nomore";
+					this.contentText.contentnomore = "没有更多数据了！"
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.top_title {
+			color: #fff;
+			font-size: 35rpx;
+		}
+	}
+
+	.content {
+		width: 100%;
+		padding: 20rpx 0;
+
+		.operate_box {
+			width: 80%;
+			margin: 0 auto;
+			padding-top: 120rpx;
+
+			.operate_btn {
+				width: 50%;
+				height: 70rpx;
+				line-height: 70rpx;
+				font-size: 30rpx;
+				display: inline-block;
+				text-align: center;
+				color: #23c0ba;
+				border: 2px solid #23c0ba;
+
+				&::after {
+					border: none;
+				}
+
+				&:first-child {
+					border-right: 0;
+					border-radius: 10rpx 0 0 10rpx;
+				}
+
+				&:last-child {
+					border-radius: 0 10rpx 10rpx 0;
+				}
+
+				&.active {
+					background-color: #23c0ba;
+					color: #fff;
+				}
+			}
+		}
+	}
+
+	.content_box {
+		.record_title {
+			background-color: #fff;
+
+			text {
+				&:first-child {
+					flex: 1.3;
+				}
+
+				&:nth-child(2) {
+					flex: 1;
+					text-align: left;
+				}
+
+				&:last-child {
+					flex: .5;
+				}
+			}
+		}
+
+		.record_title,
+		.record_list {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100rpx;
+
+			& text {
+				width: 280rpx;
+				text-align: center;
+			}
+
+			&.list_item {
+				padding: 0 10rpx;
+			}
+		}
+
+		.record_list {
+			border-bottom: 1px solid #d9d9d9;
+
+			& .date {
+				flex: 1.3;
+			}
+
+			& .price {
+				flex: 1;
+				text-align: left;
+				font-weight: bold;
+			}
+
+			& .status {
+				flex: .5;
+				background-color: rgba(35, 192, 186, .2);
+				color: #23c0ba;
+			}
+		}
+	}
+
+	.detail_subsidiary {
+		background-color: #fff;
+		padding: 10rpx 20rpx;
+
+		.list_box {
+			display: flex;
+			align-items: center;
+			padding: 20rpx 0;
+
+			.detail_box {
+				flex: 2;
+				padding-bottom: 10rpx;
+				border-bottom: 1px solid #eee;
+			}
+
+			.list_head {
+				margin-right: 20rpx;
+				line-height: 0;
+
+				image {
+					width: 100rpx;
+					height: 100rpx;
+				}
+			}
+
+			& .detail_item {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				text {
+					font-size: 26rpx;
+					color: #949494;
+
+					&.high_text {
+						font-size: 30rpx;
+						font-weight: bold;
+						margin: 0 5rpx;
+						color: #000;
+					}
+				}
+
+				.item_first {
+					flex: 2;
+				}
+
+				.item_title {
+					flex: 1.8;
+					text-align: right;
+					padding-right: 10rpx;
+
+					.real_price {
+						color: #000;
+						margin: 0 5rpx;
+					}
+
+					& .color_text {
+						color: $uni-color-theme;
+						padding: 10rpx;
+						border-radius: 5rpx;
+						background-color: rgba(100, 204, 232, .2);
+					}
+				}
+			}
+		}
+	}
+
+	.order_img {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+
+		image {
+			width: 150rpx;
+			height: 150rpx;
+			padding: 80rpx 80rpx 20rpx;
+		}
+	}
+</style>

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "健康百科",
+  "usingComponents": {
+    "uni-load-more": "/components/uni-load-more/uni-load-more"
+  }
+}

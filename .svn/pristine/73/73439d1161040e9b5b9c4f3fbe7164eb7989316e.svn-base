@@ -1,0 +1,490 @@
+<template>
+	<view>
+		<view class="demo" :style="'height:' +  demo.height + 'px;' + 'padding-top:' + demo.top + 'px;padding-bottom:10rpx'">
+			<view class="left" :style="'top:' + demo.top + 'px'">
+				<view class="iconfont icon-zuo" @tap='backleft'></view>
+			</view>
+			<view class="top_title">订单详情</view>
+		</view>
+		<view class="order_container">
+			<view class="cont_item">
+				<view class="cont_img">
+					<image class="w66" src="https://test134.vrapp.chot.cn/mini/picture/order_detail02.png">
+				</view>
+				<view class="cont_right">
+					<view class="color_text">订单号码:<span>{{infoList.order_no}}</span></view>
+					<view class="color_text">备注：<span>加急</span></view>
+					<view class="gray_text">{{ infoList.create_at }}</view>
+				</view>
+			</view>
+			<view class="cont_item">
+				<view class="cont_img">
+					<image class="w66" src="https://test134.vrapp.chot.cn/mini/picture/order_detail01.png">
+				</view>
+				<view class="cont_right">
+					<view class="color_text">收件人：<span>{{infoList.express_name}}</span></view>
+					<view class="color_text">联系方式：<span>{{infoList.express_phone}}</span></view>
+					<view class="gray_text">{{infoList.express_province}}{{infoList.express_area}}{{infoList.express_city}}{{infoList.express_address}}</view>
+				</view>
+			</view>
+		</view>
+		<view class="content">
+			<view class="item">
+				<view class="orderid">
+					<view class="title">乐嫂：
+						<span class="name">乐管家中心</span>
+						<span>023-23562356</span>
+					</view>
+					<view>
+						<image class="sucessImg" src="https://test134.vrapp.chot.cn/mini/picture/135_57.png" mode="widthFix"></image>
+						<text class="statusText">{{infoList.status}}</text>
+					</view>
+				</view>
+				<view class="infor uni-flex">
+					<view>
+						<image class="orderPrdImg" mode="widthFix" @error="errImg" :src="infoList.goods_logo"></image>
+					</view>
+					<view class="infordt">
+						<view class="title">{{ infoList.goods_title }}</view>
+						<view class="price">¥{{ infoList.price_real }}元/天</view>
+						<view class="num">x{{ infoList.number_goods }}</view>
+					</view>
+				</view>
+				<view class="pay" v-show="infoList.status !== '待付款'">
+					实付款：¥{{ infoList.price_real * infoList.number_goods }}
+				</view>
+				<view class="pay" v-show="infoList.status == '待付款'">
+					待付款：¥{{ infoList.price_real * infoList.number_goods }}
+				</view>
+				<view class="about" v-show=" order.evaluate!== null">
+					<text class="title">订单评价</text>
+					<view class="des">
+						<view class="show_rate">
+							<uni-rate size="15" :value="rate_star" disabled="true"></uni-rate>
+						</view>
+						<view class="valuate_content">
+							{{ order.evaluate }}
+						</view>
+					</view>
+				</view>
+				<view class="btn">
+					<button hover-class="active" v-show="infoList.status == '已完成'">再次购买</button>
+					<button @tap="pjFn" hover-class="active" v-show="infoList.status == '已完成' && order.evaluate == null">立即评价</button>
+				</view>
+
+			</view>
+		</view>
+		<view class="assess" v-show="evaluate == true">
+			<view class="assess_item">
+				<view class="uni-flex pd_b20">
+					<view class="uni-rate-title">评分：</view>
+					<uni-rate value="2" @change="changeStarts"></uni-rate>
+				</view>
+				<view class="uni-textarea">
+					<textarea class="border-textarea" placeholder-style="color:#d2d2d2" placeholder="评价内容：" v-model="text_val"></textarea>
+				</view>
+				<view>
+					<view class="confirm">
+						<button class="confirm_btn" @tap="confirmFn">确认</button>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import app from "../../App.vue"
+	import uniRate from "../../components/uni-rate/uni-rate.vue"
+	export default {
+		name: "orderDetail",
+		components: {
+			uniRate
+		},
+		data() {
+			return {
+				demo: {
+					top: 0,
+					height: 0
+				},
+				infoList: {
+					order_no: '',
+					goods_title: '',
+					goods_logo: '',
+					price_real: '',
+					number_goods: '',
+					create_at: ''
+				},
+				text_val: '',
+				stars: 2,
+				evaluate: false,
+				token: '',
+				evaluate_content: true,
+				rate_star: 0,
+				order: {}
+			}
+		},
+		onLoad() {
+			this.getList();
+		},
+		created() {
+			const demo = uni.getMenuButtonBoundingClientRect()
+			this.demo.top = demo.top
+			this.demo.height = demo.height
+			this.valueSync = Number(this.value);
+			this.order = uni.getStorageSync('order_no');
+			this.rate_star = Math.round(this.order.score);
+			if (app.globalData.token == undefined) {
+				this.token = uni.getStorageSync('token');
+			} else {
+				this.token = app.globalData.token;
+			}
+		},
+		methods: {
+			backleft(e) {
+				uni.navigateBack();
+			},
+			errImg() {
+				if (this.infoList.goods_logo.length == 29) { // 图片不完整路径
+					this.infoList.goods_logo = 'https://test134.vrapp.chot.cn/mini/picture/orderImg.png';
+				}
+				if (this.infoList.number_goods == null || this.infoList.goods_title == null || this.infoList.price_real == null) {
+					this.infoList.number_goods = 1;
+					this.infoList.price_real = 0;
+					this.infoList.goods_title = '居家生活料理套餐'
+				}
+			},
+			async getList() {
+				const res = await this.$myRequset({
+					url: '/api',
+					method: "POST",
+					data: {
+						operate: 'Order.details',
+						order_no: this.order.order_no,
+						token: this.token
+					},
+					header: {
+						'content-type': 'application/form',
+					}
+				});
+				this.infoList = res.data.data;
+				if (this.infoList.status == 0) {
+					this.infoList.status = "已取消";
+				} else if (this.infoList.status == 1) {
+					this.infoList.status = "预约成功";
+				} else if (this.infoList.status == 2) {
+					this.infoList.status = "待付款";
+				} else if (this.infoList.status == 3) {
+					this.infoList.status = "待发货";
+				} else if (this.infoList.status == 4) {
+					this.infoList.status = "待收货";
+				} else if (this.infoList.status == 5) {
+					this.infoList.status = "已完成";
+				}
+			},
+			changeStarts(num) {
+				this.stars = num.value;
+			},
+			async confirmFn() {
+				let order_no = uni.getStorageSync('order_no');
+				if (!this.text_val) {
+					uni.showToast({
+						title: "评价内容不能为空!",
+						icon: "none"
+					});
+				} else {
+					const res = await this.$myRequset({
+						url: '/api',
+						method: "POST",
+						data: {
+							operate: 'Order.evaluate_add',
+							order_no: order_no.order_no,
+							token: this.token,
+							score: this.stars,
+							evaluate: this.text_val
+						},
+						header: {
+							'content-type': 'application/form',
+						}
+					});
+					if (res.data.code === 1) {
+						uni.showToast({
+							title: "评论成功!",
+							icon: "none"
+						});
+						this.stars = 2;
+						this.text_val = '';
+						this.evaluate = false;
+					};
+				}
+			},
+			pjFn() {
+				this.evaluate = true;
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.demo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #23c0ba;
+		font-size: 26rpx;
+		width: 100%;
+		text-align: center;
+		position: fixed;
+		top: 0;
+		z-index: 999;
+
+		.left {
+			float: left;
+			position: absolute;
+			width: max-content;
+			height: max-content;
+			top: 0;
+			bottom: 0;
+			left: 20rpx;
+			margin: auto;
+		}
+
+		.top_title {
+			color: white;
+			font-size: 35rpx;
+		}
+	}
+
+	.order_container {
+		padding: 130rpx 30rpx 30rpx;
+		background: #fefefe;
+		margin-bottom: 20rpx;
+
+		.cont_item {
+			display: flex;
+			align-items: center;
+			padding: 20rpx 0;
+
+			&:first-child {
+				border-bottom: 1px solid #f4f4f4;
+			}
+
+			.w66 {
+				width: 66rpx;
+				height: 66rpx;
+			}
+
+			.cont_right {
+				margin-left: 30rpx;
+				font-size: 30rpx;
+				font-weight: bold;
+
+				.color_text {
+					color: #23c0ba;
+				}
+
+				.gray_text {
+					color: #a8a8a8;
+				}
+			}
+
+		}
+
+	}
+
+	.content {
+		background: #fefefe;
+		padding: 10rpx 0;
+
+		.item {
+			margin: 10rpx auto;
+			width: 86%;
+			background: #fff;
+			box-shadow: 0rpx 0rpx 6rpx 6rpx #f4f4f4;
+			border-radius: 20rpx;
+			padding: 27rpx;
+		}
+
+		.orderid {
+			position: relative;
+			padding-bottom: 27rpx;
+			border-bottom: 1px solid #f4f4f4;
+
+			.title {
+				font-size: 26rpx;
+				color: #28292c;
+				display: flex;
+				.name{
+					flex: .5;
+				}
+			}
+
+			.sucessImg {
+				width: 135rpx;
+				height: 57rpx;
+				position: absolute;
+				top: 0;
+				right: -34rpx;
+			}
+
+			.statusText {
+				position: absolute;
+				top: 0rpx;
+				right: -34rpx;
+				display: inline-block;
+				width: 122rpx;
+				height: 40rpx;
+				z-index: 99;
+				line-height: 40rpx;
+				color: #fff;
+				text-align: center;
+
+			}
+		}
+
+		.infor {
+			padding-top: 25rpx;
+
+			.orderPrdImg {
+				width: 252rpx;
+				height: 146rpx !important;
+			}
+
+			.infordt {
+				padding-left: 27rpx;
+
+				.title {
+					font-size: 24rpx;
+					color: #28292c;
+				}
+
+				.price {
+					font-size: 28rpx;
+					color: #fa1c39;
+				}
+
+				.num {
+					font-size: 24rpx;
+					color: #a8a8a8;
+				}
+			}
+		}
+
+		.pay {
+			font-size: 28rpx;
+			color: #28292c;
+			text-align: right;
+			font-weight: bold;
+			border-bottom: 1px solid #f4f4f4;
+		}
+
+		.btn {
+			padding-top: 20rpx;
+			text-align: right;
+
+			button {
+				display: inline-block;
+				margin-left: 20rpx;
+				background: #fff;
+				color: #5b5a5a;
+				font-size: 24rpx;
+				border: 2px solid #f4f4f4;
+				border-radius: 40rpx;
+
+			}
+
+			button:after {
+				border: none;
+			}
+
+			.active {
+				border-color: #d8d8d8;
+				color: #000;
+			}
+		}
+	}
+
+	.about {
+		padding-top: 40rpx;
+
+		.title {
+			font-size: 30rpx;
+		}
+	}
+
+	.show_rate {
+		margin: 18rpx auto;
+	}
+
+	.uni-rate {
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		line-height: 0;
+		font-size: 0;
+		flex-direction: row;
+		align-self: center;
+		padding-top: 20rpx;
+	}
+
+	.uni-rate__icon {
+		position: relative;
+		line-height: 0;
+		font-size: 0;
+	}
+
+	.uni-rate__icon-on {
+		overflow: hidden;
+		position: absolute;
+		top: 0;
+		left: 0;
+		line-height: 1;
+		text-align: left;
+	}
+
+	.assess {
+		border-top: 20rpx solid #fafafa;
+		background: #fefefe;
+		padding: 20rpx 0;
+
+		.assess_item {
+			width: 86%;
+			box-shadow: 0rpx 0rpx 6rpx 6rpx #f4f4f4;
+			padding: 20rpx;
+			margin: 0 auto;
+			border-radius: 20rpx;
+		}
+
+		.border-textarea {
+			border: 1px solid #d2d2d2;
+			border-radius: 10rpx;
+		}
+
+		.uni-rate-title {
+			font-size: 26rpx;
+			color: #4f4f4f;
+		}
+
+		.pd_b20 {
+			padding-bottom: 20rpx;
+		}
+
+		.confirm {
+			padding-top: 20rpx;
+			text-align: right;
+
+			.confirm_btn {
+				background: linear-gradient(to right, #63c8e8, #64d3e6);
+				border: none;
+				color: #fff;
+				font-size: 26rpx;
+				width: 106rpx;
+				height: 47rpx;
+				line-height: 47rpx;
+				padding: 0;
+				display: inline-block;
+
+			}
+		}
+	}
+</style>

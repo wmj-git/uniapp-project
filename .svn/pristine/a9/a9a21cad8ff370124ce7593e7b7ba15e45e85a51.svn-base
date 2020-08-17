@@ -1,0 +1,188 @@
+<script>
+	export default {
+		globalData: {
+			is_flag: true, //跳转开关
+			from_mid: 0, //推广人mid
+			token: "",
+			session_key: "", //密钥
+			mid: "",
+			nickName: "",
+			phone: "",
+			headimg: "",
+			orderStatus: 3 //订单状态，3是待护理
+		},
+		onLaunch: function() {
+			console.log('App Launch');
+
+		},
+		onShow: function() {
+			console.log('App Show');
+		},
+		wxLogin() {
+			return new Promise((resolve, reject) => {
+				// 1.wx获取登录用户code
+				var _this = this;
+				uni.login({
+					provider: 'weixin',
+					success: function(loginRes) {
+						let code = loginRes.code;
+
+						//2.将用户登录code传递到后台置换用户SessionKey、OpenId等信息
+						uni.request({
+							url: 'https://test134.vrapp.chot.cn/api/',
+							data: {
+								operate: "wechat.session",
+								code: code,
+							},
+							method: 'POST',
+							header: {
+								'content-type': 'application/json'
+							},
+							success: (res) => {
+								console.log("登录成功");
+								console.log(res);
+								var token = res.data.data.token;
+								_this.globalData.token = token;
+								uni.setStorageSync('token', token);
+
+								var session_key = res.data.data.session_key
+								uni.setStorageSync('session_key', session_key);
+								_this.globalData.session_key = session_key;
+
+								var mid = res.data.data.member.id;
+								uni.setStorageSync('mid', mid);
+								_this.globalData.mid = mid;
+
+								_this.globalData.nickName = res.data.data.member.nickname
+
+								var phone = res.data.data.member.phone;
+								_this.globalData.phone = phone;
+
+								_this.globalData.headimg = res.data.data.member.headimg
+								resolve(res.data)
+
+							}
+						});
+					},
+					fail: () => {
+
+					}
+				});
+
+			});
+		},
+		//向后台更新信息
+		updateUserInfo() {
+			var _this= this;
+			uni.request({
+				url: 'https://test134.vrapp.chot.cn/api', //服务器端地址
+				data: {
+					operate: "MemberCenter.update",
+					token: _this.globalData.token,
+					phone: _this.globalData.phone,
+					nickname: _this.globalData.nickName,
+					headimg: _this.globalData.headimg
+				},
+				method: 'POST',
+				header: {
+					'content-type': 'application/json'
+				},
+				success: (res) => {
+					console.log("向后台更新信息");
+					console.log(res);
+				}
+
+			});
+
+		},
+		onHide: function() {
+			console.log('App Hide');
+		},
+
+
+
+
+
+	};
+</script>
+<style>
+	@import './common/uni.css';
+	@import './static/fonts/iconfont.css';
+
+	.icon-zuo {
+		color: #fff;
+	}
+
+	.flex-item {
+		width: 33.3%;
+		text-align: center;
+	}
+
+	page {
+		background-color: #F4F5F6;
+		height: 100%;
+		font-size: 28rpx;
+		line-height: 1.8;
+	}
+
+	.backWhite {
+		background: #fff;
+	}
+
+	.mart20 {
+		margin-top: 20rpx;
+	}
+
+	.uni-header-logo {
+		padding: 30rpx;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: 10rpx;
+	}
+
+	.uni-header-image {
+		width: 100px;
+		height: 100px;
+	}
+
+	.uni-hello-text {
+		color: #7A7E83;
+	}
+
+	.text-right {
+		text-align: right;
+	}
+
+	.uni-hello-addfile {
+		text-align: center;
+		line-height: 300rpx;
+		background: #FFF;
+		padding: 50rpx;
+		margin-top: 10px;
+		font-size: 38rpx;
+		color: #808080;
+	}
+
+	.img100 {
+		width: 100%;
+	}
+
+	.title {
+		font-size: 40rpx;
+		font-weight: bold;
+	}
+
+	.pd-tb20 {
+		padding: 20rpx;
+	}
+
+	/* 解决头条小程序组件内引入字体不生效的问题 */
+	/* #ifdef MP-TOUTIAO */
+	@font-face {
+		font-family: uniicons;
+		src: url('/static/uni.ttf');
+	}
+
+	/* #endif */
+</style>
